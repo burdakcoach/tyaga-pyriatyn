@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { ZoneDTO, TableDTO } from "@/types";
 
 const ZONE_BG: Record<string, string> = {
-  "Смарагдова кімната": "/interior/lounge-1.jpg",
+  "Смарагдова кімната": "/interior/lounge-2.jpg",
   Тераса: "/interior/terrace-2.jpg",
 };
 

@@ -67,10 +67,11 @@ async function main() {
 
   const tableDefs = [
     // Смарагдова кімната (indoor): 1 стіл на двох, 2 столи на сімох, 1 стіл на трьох.
-    { zone: "Смарагдова кімната", number: 1, capacity: 2, x: 20, y: 25, shape: "square" },
-    { zone: "Смарагдова кімната", number: 2, capacity: 7, x: 50, y: 25, shape: "sofa" },
-    { zone: "Смарагдова кімната", number: 3, capacity: 7, x: 80, y: 25, shape: "sofa" },
-    { zone: "Смарагдова кімната", number: 4, capacity: 3, x: 50, y: 75, shape: "square" },
+    // Координати підібрані під реальне фото (web/public/interior/lounge-2.jpg).
+    { zone: "Смарагдова кімната", number: 1, capacity: 2, x: 32, y: 30, shape: "square" },
+    { zone: "Смарагдова кімната", number: 2, capacity: 7, x: 15, y: 58, shape: "sofa" },
+    { zone: "Смарагдова кімната", number: 3, capacity: 7, x: 78, y: 52, shape: "sofa" },
+    { zone: "Смарагдова кімната", number: 4, capacity: 3, x: 90, y: 85, shape: "square" },
     // Тераса: кутовий стіл на 8, стіл на 2-4, стіл на 2-6 (capacity = максимум).
     // Координати підібрані під реальне фото тераси (web/public/interior/terrace-1.jpg).
     { zone: "Тераса", number: 5, capacity: 8, x: 15, y: 22, shape: "corner" },
