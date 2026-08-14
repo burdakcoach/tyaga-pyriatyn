@@ -6,7 +6,7 @@ import type { ZoneDTO, TableDTO } from "@/types";
 
 const ZONE_BG: Record<string, string> = {
   "Смарагдова кімната": "/interior/lounge-1.jpg",
-  Тераса: "/interior/terrace-1.jpg",
+  Тераса: "/interior/terrace-2.jpg",
 };
 
 const TIME_SLOTS = [
