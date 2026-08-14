@@ -9,6 +9,7 @@ export type FlavorDTO = {
   available: boolean;
   brandId: string | null;
   brandName: string | null;
+  imageUrl: string | null;
 };
 
 export type BrandDTO = {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { STRENGTH_LABEL, STRENGTH_COLOR } from "@/lib/constants";
 import type { BrandDTO, FlavorDTO, Strength } from "@/types";
 
@@ -96,22 +97,37 @@ export default function MenuPage() {
                 {items.map((f) => (
                   <div
                     key={f.id}
-                    className="rounded-xl border border-brass/20 bg-panel p-4 hover:border-brass/50 transition-colors"
+                    className="rounded-xl border border-brass/20 bg-panel overflow-hidden hover:border-brass/50 transition-colors"
                   >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="font-semibold leading-snug">{f.name}</h3>
+                    <div className="relative w-full aspect-square bg-black/30">
+                      {f.imageUrl ? (
+                        <Image
+                          src={f.imageUrl}
+                          alt={f.name}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted/40 text-xs">
+                          Фото немає
+                        </div>
+                      )}
                       {f.strength && (
                         <span
-                          className={`shrink-0 text-xs rounded-full border px-2 py-0.5 ${STRENGTH_COLOR[f.strength]}`}
+                          className={`absolute top-2 right-2 text-xs rounded-full border px-2 py-0.5 bg-background/80 backdrop-blur ${STRENGTH_COLOR[f.strength]}`}
                         >
                           {STRENGTH_LABEL[f.strength]}
                         </span>
                       )}
                     </div>
-                    {f.description && <p className="text-sm text-muted">{f.description}</p>}
-                    {f.weightGrams && (
-                      <p className="text-xs text-muted/70 mt-2">{f.weightGrams} г</p>
-                    )}
+                    <div className="p-4">
+                      <h3 className="font-semibold leading-snug mb-1">{f.name}</h3>
+                      {f.description && <p className="text-sm text-muted">{f.description}</p>}
+                      {f.weightGrams && (
+                        <p className="text-xs text-muted/70 mt-2">{f.weightGrams} г</p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

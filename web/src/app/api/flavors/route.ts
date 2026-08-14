@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
       available: flavors.available,
       brandId: flavors.brandId,
       brandName: brands.name,
+      imageUrl: flavors.imageUrl,
     })
     .from(flavors)
     .leftJoin(brands, eq(flavors.brandId, brands.id))

@@ -144,6 +144,7 @@ async function main() {
       brandId,
       available: true,
       sourceNote: f.sourceFiles,
+      imageUrl: `/tobacco/seed-${f.num}.jpg`,
     };
     if (existing) {
       db.update(flavors).set(values).where(eq(flavors.id, id)).run();
@@ -155,7 +156,25 @@ async function main() {
     created += 1;
   }
 
-  console.log(`Done. ${created} flavors, ${Object.keys(zoneIds).length} zones, ${tableDefs.length} tables.`);
+  // Remove brands left with zero flavors (e.g. after a rename in flavors.json —
+  // upsertBrand creates the new name but doesn't touch the old row).
+  const usedBrandIds = new Set(
+    db.select({ brandId: flavors.brandId }).from(flavors).all().map((r) => r.brandId)
+  );
+  const allBrands = db.select().from(brands).all();
+  let removedBrands = 0;
+  for (const b of allBrands) {
+    if (!usedBrandIds.has(b.id)) {
+      db.delete(brands).where(eq(brands.id, b.id)).run();
+      removedBrands += 1;
+    }
+  }
+
+  console.log(
+    `Done. ${created} flavors, ${Object.keys(zoneIds).length} zones, ${tableDefs.length} tables` +
+      (removedBrands ? `, ${removedBrands} empty brand(s) removed` : "") +
+      "."
+  );
 }
 
 main()
