@@ -66,14 +66,15 @@ async function main() {
   };
 
   const tableDefs = [
-    { zone: "Смарагдова кімната", number: 1, capacity: 8, x: 25, y: 30, shape: "sofa" },
-    { zone: "Смарагдова кімната", number: 2, capacity: 6, x: 70, y: 30, shape: "sofa" },
-    { zone: "Смарагдова кімната", number: 3, capacity: 4, x: 50, y: 70, shape: "square" },
-    { zone: "Тераса", number: 4, capacity: 8, x: 15, y: 25, shape: "sofa" },
-    { zone: "Тераса", number: 5, capacity: 4, x: 40, y: 20, shape: "square" },
-    { zone: "Тераса", number: 6, capacity: 4, x: 65, y: 20, shape: "square" },
-    { zone: "Тераса", number: 7, capacity: 4, x: 85, y: 35, shape: "square" },
-    { zone: "Тераса", number: 8, capacity: 4, x: 70, y: 70, shape: "sofa" },
+    // Смарагдова кімната (indoor): 1 стіл на двох, 2 столи на сімох, 1 стіл на трьох.
+    { zone: "Смарагдова кімната", number: 1, capacity: 2, x: 20, y: 25, shape: "square" },
+    { zone: "Смарагдова кімната", number: 2, capacity: 7, x: 50, y: 25, shape: "sofa" },
+    { zone: "Смарагдова кімната", number: 3, capacity: 7, x: 80, y: 25, shape: "sofa" },
+    { zone: "Смарагдова кімната", number: 4, capacity: 3, x: 50, y: 75, shape: "square" },
+    // Тераса: кутовий стіл на 8, стіл на 2-4, стіл на 2-6 (capacity = максимум).
+    { zone: "Тераса", number: 5, capacity: 8, x: 15, y: 30, shape: "corner" },
+    { zone: "Тераса", number: 6, capacity: 4, x: 55, y: 25, shape: "square" },
+    { zone: "Тераса", number: 7, capacity: 6, x: 80, y: 65, shape: "sofa" },
   ];
 
   for (const t of tableDefs) {
@@ -86,7 +87,7 @@ async function main() {
       .find((row) => row.number === t.number);
     if (existing) {
       db.update(tableSpots)
-        .set({ capacity: t.capacity, x: t.x, y: t.y, shape: t.shape })
+        .set({ capacity: t.capacity, x: t.x, y: t.y, shape: t.shape, active: true })
         .where(eq(tableSpots.id, existing.id))
         .run();
     } else {
@@ -101,6 +102,23 @@ async function main() {
           shape: t.shape,
         })
         .run();
+    }
+  }
+
+  // Deactivate any old table rows that are no longer part of the current floor
+  // plan (e.g. the terrace used to have 5 tables, now has 3). We don't delete
+  // them outright because past bookings reference their id as a foreign key —
+  // marking them inactive just hides them from the floor plan going forward.
+  for (const zoneName of Object.keys(zoneIds)) {
+    const zoneId = zoneIds[zoneName];
+    const currentNumbers = new Set(
+      tableDefs.filter((t) => t.zone === zoneName).map((t) => t.number)
+    );
+    const rowsInZone = db.select().from(tableSpots).where(eq(tableSpots.zoneId, zoneId)).all();
+    for (const row of rowsInZone) {
+      if (!currentNumbers.has(row.number) && row.active) {
+        db.update(tableSpots).set({ active: false }).where(eq(tableSpots.id, row.id)).run();
+      }
     }
   }
 
