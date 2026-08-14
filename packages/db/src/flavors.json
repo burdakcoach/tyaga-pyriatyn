@@ -1,7 +1,7 @@
 [
   {
     "num": 1,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Banana Strawberry",
     "description": "Полуниця, банан",
     "strength_raw": "medium",
@@ -11,7 +11,7 @@
   },
   {
     "num": 2,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Space Jam",
     "description": "Грейпфрут, полуниця, ківі",
     "strength_raw": "medium",
@@ -21,7 +21,7 @@
   },
   {
     "num": 3,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Love Is",
     "description": "Баблгам, диня, кавун",
     "strength_raw": "medium",
@@ -31,7 +31,7 @@
   },
   {
     "num": 4,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Toxic Cactus",
     "description": "Кактус, лимон, лайм, ківі",
     "strength_raw": "medium",
@@ -41,7 +41,7 @@
   },
   {
     "num": 5,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Thailand Shot",
     "description": "Манго, помело, папайя",
     "strength_raw": "medium",
@@ -51,7 +51,7 @@
   },
   {
     "num": 6,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Red Kiwi",
     "description": "Ківі, кавун, полуниця",
     "strength_raw": "medium",
@@ -61,7 +61,7 @@
   },
   {
     "num": 7,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Malibu Vibe",
     "description": "Ананас, манго, диня",
     "strength_raw": "medium",
@@ -71,7 +71,7 @@
   },
   {
     "num": 8,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Double Melon",
     "description": "Диня, кавун, м'ята",
     "strength_raw": "medium",
@@ -81,7 +81,7 @@
   },
   {
     "num": 9,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Lemon Cake",
     "description": "Лимонний пиріг",
     "strength_raw": "medium",
@@ -91,7 +91,7 @@
   },
   {
     "num": 10,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Barberry Candy",
     "description": "Барбарисова цукерка",
     "strength_raw": "medium",
@@ -101,7 +101,7 @@
   },
   {
     "num": 11,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Candy Mint",
     "description": "М'ятні льодяники",
     "strength_raw": "medium",
@@ -111,7 +111,7 @@
   },
   {
     "num": 12,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Grape Soda",
     "description": "Виноградна содова",
     "strength_raw": "medium",
@@ -121,7 +121,7 @@
   },
   {
     "num": 13,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Blueberry",
     "description": "Чорниця",
     "strength_raw": "medium",
@@ -131,7 +131,7 @@
   },
   {
     "num": 14,
-    "brand": "4/20 Tobacco",
+    "brand": "4.20",
     "name": "Холодок (Frostbite)",
     "description": null,
     "strength_raw": null,
@@ -421,7 +421,7 @@
   },
   {
     "num": 43,
-    "brand": "4/20",
+    "brand": "4.20",
     "name": "Berry Zen",
     "description": "Лемонграс, лохина, малина",
     "strength_raw": "medium",
@@ -431,7 +431,7 @@
   },
   {
     "num": 44,
-    "brand": "4/20",
+    "brand": "4.20",
     "name": "Freeze Pop",
     "description": "Орбіт, чорниця, жуйка",
     "strength_raw": "medium",
@@ -441,7 +441,7 @@
   },
   {
     "num": 45,
-    "brand": "4/20",
+    "brand": "4.20",
     "name": "Citrus Mint",
     "description": "Цитрус, м'ята",
     "strength_raw": "medium",
@@ -451,7 +451,7 @@
   },
   {
     "num": 46,
-    "brand": "4/20",
+    "brand": "4.20",
     "name": "Orange Zest",
     "description": "Сицилійський апельсин",
     "strength_raw": "medium",
@@ -461,7 +461,7 @@
   },
   {
     "num": 47,
-    "brand": "4/20",
+    "brand": "4.20",
     "name": "Slimer",
     "description": "Кокос, молоко, лайм",
     "strength_raw": "medium",
@@ -471,7 +471,7 @@
   },
   {
     "num": 48,
-    "brand": "4/20",
+    "brand": "4.20",
     "name": "Berry Lemonade",
     "description": "(малюнок Stewie)",
     "strength_raw": "medium",
@@ -811,7 +811,7 @@
   },
   {
     "num": 82,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "ЛАВ 66",
     "description": "Диня, кавун, маракуйя і м'ята — «смак кохання»",
     "strength_raw": "light",
@@ -821,7 +821,7 @@
   },
   {
     "num": 83,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Яблучні ведмедики",
     "description": "Смак дитинства з яблучним відтінком",
     "strength_raw": "light",
@@ -831,7 +831,7 @@
   },
   {
     "num": 84,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Ягідна жуйка",
     "description": "Соковита ягідна історія",
     "strength_raw": "light",
@@ -841,7 +841,7 @@
   },
   {
     "num": 85,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Свіжі ягоди",
     "description": "Малина, смородина, чорниця",
     "strength_raw": "light",
@@ -851,7 +851,7 @@
   },
   {
     "num": 86,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Айс лимон м'ята",
     "description": "Лимонна свіжість",
     "strength_raw": "light",
@@ -861,7 +861,7 @@
   },
   {
     "num": 87,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Тропічний сік",
     "description": "Соковитий смак тропіків",
     "strength_raw": "light",
@@ -871,7 +871,7 @@
   },
   {
     "num": 88,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Скіттлс",
     "description": "Кисла цукерка",
     "strength_raw": "light",
@@ -881,7 +881,7 @@
   },
   {
     "num": 89,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Рожевий лимонад",
     "description": "Рожева пристрасть",
     "strength_raw": "light",
@@ -891,7 +891,7 @@
   },
   {
     "num": 90,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Грін мікс",
     "description": "Зелена свіжість",
     "strength_raw": "light",
@@ -901,7 +901,7 @@
   },
   {
     "num": 91,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Літній вайб",
     "description": "Мікс, який наповнить тебе літнім настроєм",
     "strength_raw": "light",
@@ -911,7 +911,7 @@
   },
   {
     "num": 92,
-    "brand": "420 LIGHT",
+    "brand": "4.20",
     "name": "Цитрусовий лимонад",
     "description": "Для поціновувачів цитрусової кислинки",
     "strength_raw": "light",
