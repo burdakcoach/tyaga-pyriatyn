@@ -1,0 +1,922 @@
+[
+  {
+    "num": 1,
+    "brand": "4/20 Tobacco",
+    "name": "Banana Strawberry",
+    "description": "Полуниця, банан",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-04-40"
+  },
+  {
+    "num": 2,
+    "brand": "4/20 Tobacco",
+    "name": "Space Jam",
+    "description": "Грейпфрут, полуниця, ківі",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-04-49"
+  },
+  {
+    "num": 3,
+    "brand": "4/20 Tobacco",
+    "name": "Love Is",
+    "description": "Баблгам, диня, кавун",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-04-53 (2)"
+  },
+  {
+    "num": 4,
+    "brand": "4/20 Tobacco",
+    "name": "Toxic Cactus",
+    "description": "Кактус, лимон, лайм, ківі",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-04-53"
+  },
+  {
+    "num": 5,
+    "brand": "4/20 Tobacco",
+    "name": "Thailand Shot",
+    "description": "Манго, помело, папайя",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-04-54 (2)"
+  },
+  {
+    "num": 6,
+    "brand": "4/20 Tobacco",
+    "name": "Red Kiwi",
+    "description": "Ківі, кавун, полуниця",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-04-54"
+  },
+  {
+    "num": 7,
+    "brand": "4/20 Tobacco",
+    "name": "Malibu Vibe",
+    "description": "Ананас, манго, диня",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-04-57"
+  },
+  {
+    "num": 8,
+    "brand": "4/20 Tobacco",
+    "name": "Double Melon",
+    "description": "Диня, кавун, м'ята",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-05-01"
+  },
+  {
+    "num": 9,
+    "brand": "4/20 Tobacco",
+    "name": "Lemon Cake",
+    "description": "Лимонний пиріг",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-07-08"
+  },
+  {
+    "num": 10,
+    "brand": "4/20 Tobacco",
+    "name": "Barberry Candy",
+    "description": "Барбарисова цукерка",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-08-17"
+  },
+  {
+    "num": 11,
+    "brand": "4/20 Tobacco",
+    "name": "Candy Mint",
+    "description": "М'ятні льодяники",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня (відблиски)",
+    "sourceFiles": "16-05-33"
+  },
+  {
+    "num": 12,
+    "brand": "4/20 Tobacco",
+    "name": "Grape Soda",
+    "description": "Виноградна содова",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-05-37, 16-07-11"
+  },
+  {
+    "num": 13,
+    "brand": "4/20 Tobacco",
+    "name": "Blueberry",
+    "description": "Чорниця",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-07-43"
+  },
+  {
+    "num": 14,
+    "brand": "4/20 Tobacco",
+    "name": "Холодок (Frostbite)",
+    "description": null,
+    "strength_raw": null,
+    "weight_raw": "250 г",
+    "confidence": "Середня",
+    "sourceFiles": "16-17-40"
+  },
+  {
+    "num": 15,
+    "brand": "Turbo",
+    "name": "Aperolla Testarossa",
+    "description": "Апероль",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-52 (2)"
+  },
+  {
+    "num": 16,
+    "brand": "Tobacco Palladium Limited",
+    "name": "Elderberry",
+    "description": "Бузина (банка з наліпкою TYAGA)",
+    "strength_raw": "strong",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-10-52"
+  },
+  {
+    "num": 17,
+    "brand": "Orwell x Embery",
+    "name": "Вишня-Гранат",
+    "description": null,
+    "strength_raw": "Soft",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-53 (2)"
+  },
+  {
+    "num": 18,
+    "brand": "Swipe Molasses",
+    "name": "Kiwi Bloom",
+    "description": null,
+    "strength_raw": "Sour-Sweet",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-53"
+  },
+  {
+    "num": 19,
+    "brand": "Swipe Molasses",
+    "name": "Melon Watermelon",
+    "description": null,
+    "strength_raw": "Sweet",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-56"
+  },
+  {
+    "num": 20,
+    "brand": "MaSaLa TeA",
+    "name": "Чай масала",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-54"
+  },
+  {
+    "num": 21,
+    "brand": "Heven x Enigma",
+    "name": "Daiquiri Night",
+    "description": null,
+    "strength_raw": "strong",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-11-18 (2)"
+  },
+  {
+    "num": 22,
+    "brand": "Arawak (Strong)",
+    "name": "Wild Strawberry",
+    "description": "Суниця",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-18"
+  },
+  {
+    "num": 23,
+    "brand": "Arawak (Strong)",
+    "name": "No Tequila Sunrise",
+    "description": "Диня, кавун, чорниця",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-19 (2)"
+  },
+  {
+    "num": 24,
+    "brand": "Arawak (Strong)",
+    "name": "Love Flame",
+    "description": "Персик, груша, малина",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-19"
+  },
+  {
+    "num": 25,
+    "brand": "Arawak (Strong)",
+    "name": "Fanta",
+    "description": "Цитрусовий напій",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-20 (2)"
+  },
+  {
+    "num": 26,
+    "brand": "Yummy",
+    "name": "Рожевий лимонад",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-20"
+  },
+  {
+    "num": 27,
+    "brand": "Yummy",
+    "name": "Лимон лайм",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-21 (2)"
+  },
+  {
+    "num": 28,
+    "brand": "Yummy",
+    "name": "Лимонад зі смородиною",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-21"
+  },
+  {
+    "num": 29,
+    "brand": "Yummy",
+    "name": "Тропічний енергетик",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-22"
+  },
+  {
+    "num": 30,
+    "brand": "Yummy",
+    "name": "Кавун та диня",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-23 (2)"
+  },
+  {
+    "num": 31,
+    "brand": "Yummy",
+    "name": "Цитрусовий мікс",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-23"
+  },
+  {
+    "num": 32,
+    "brand": "Yummy",
+    "name": "Вишнева кола",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-24 (2)"
+  },
+  {
+    "num": 33,
+    "brand": "Yummy",
+    "name": "Мандариновий джем",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-24"
+  },
+  {
+    "num": 34,
+    "brand": "Yummy",
+    "name": "Moxito (Мохіто)",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-25 (2)"
+  },
+  {
+    "num": 35,
+    "brand": "Yummy",
+    "name": "Апельсин Грейпфрут",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-25"
+  },
+  {
+    "num": 36,
+    "brand": "Yummy",
+    "name": "Лісові ягоди",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-26 (2)"
+  },
+  {
+    "num": 37,
+    "brand": "Yummy",
+    "name": "Піна Колада",
+    "description": null,
+    "strength_raw": "Light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-26"
+  },
+  {
+    "num": 38,
+    "brand": "HEVEN",
+    "name": "Маракуя (Maracuja)",
+    "description": null,
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-17-04 (2)"
+  },
+  {
+    "num": 39,
+    "brand": "HEVEN",
+    "name": "Нектарин-Абрикос (Red Cot)",
+    "description": null,
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-17-04"
+  },
+  {
+    "num": 40,
+    "brand": "HEVEN",
+    "name": "Кислий ананас (Pine Shock)",
+    "description": null,
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-17-07"
+  },
+  {
+    "num": 41,
+    "brand": "HEVEN",
+    "name": "Грейпфрут",
+    "description": null,
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-17-19"
+  },
+  {
+    "num": 42,
+    "brand": "HEVEN",
+    "name": "Стигла диня",
+    "description": null,
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-17-20"
+  },
+  {
+    "num": 43,
+    "brand": "4/20",
+    "name": "Berry Zen",
+    "description": "Лемонграс, лохина, малина",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-04-48, 16-10-03"
+  },
+  {
+    "num": 44,
+    "brand": "4/20",
+    "name": "Freeze Pop",
+    "description": "Орбіт, чорниця, жуйка",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-05-23"
+  },
+  {
+    "num": 45,
+    "brand": "4/20",
+    "name": "Citrus Mint",
+    "description": "Цитрус, м'ята",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-07-55"
+  },
+  {
+    "num": 46,
+    "brand": "4/20",
+    "name": "Orange Zest",
+    "description": "Сицилійський апельсин",
+    "strength_raw": "medium",
+    "weight_raw": "250 г",
+    "confidence": "Висока",
+    "sourceFiles": "16-08-23"
+  },
+  {
+    "num": 47,
+    "brand": "4/20",
+    "name": "Slimer",
+    "description": "Кокос, молоко, лайм",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-41"
+  },
+  {
+    "num": 48,
+    "brand": "4/20",
+    "name": "Berry Lemonade",
+    "description": "(малюнок Stewie)",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-10-42 (2)"
+  },
+  {
+    "num": 49,
+    "brand": "CUSTOM",
+    "name": "MED (Мед)",
+    "description": "Мед",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-42"
+  },
+  {
+    "num": 50,
+    "brand": "HEVEN",
+    "name": "Полуниця Суниця",
+    "description": "Strawberries",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-02"
+  },
+  {
+    "num": 51,
+    "brand": "HEVEN",
+    "name": "Барбарис",
+    "description": "Barberry",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-03 (2)"
+  },
+  {
+    "num": 52,
+    "brand": "HEVEN",
+    "name": "Апельсиновий сік",
+    "description": "Juice Orange",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-03"
+  },
+  {
+    "num": 53,
+    "brand": "HEVEN",
+    "name": "Кислий цитрус",
+    "description": "Sour Citrus",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-10 (2)"
+  },
+  {
+    "num": 54,
+    "brand": "HEVEN",
+    "name": "Фруктова жуйка",
+    "description": "Fruit Gum",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-10"
+  },
+  {
+    "num": 55,
+    "brand": "HEVEN",
+    "name": "Чорна смородина",
+    "description": "Black Currant",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-13, 16-17-17 (2)"
+  },
+  {
+    "num": 56,
+    "brand": "HEVEN",
+    "name": "Енергетик",
+    "description": "Energy",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-17"
+  },
+  {
+    "num": 57,
+    "brand": "HEVEN",
+    "name": "Хвоя",
+    "description": "Evergreen",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-18"
+  },
+  {
+    "num": 58,
+    "brand": "HEVEN",
+    "name": "Малина",
+    "description": "Raspberry",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-23"
+  },
+  {
+    "num": 59,
+    "brand": "HEVEN",
+    "name": "Ягоди асаї",
+    "description": "Acai",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-31"
+  },
+  {
+    "num": 60,
+    "brand": "HEVEN",
+    "name": "Кава",
+    "description": "Espresso Shot",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-32"
+  },
+  {
+    "num": 61,
+    "brand": "HEVEN",
+    "name": "Банан",
+    "description": "Banana",
+    "strength_raw": "Strong",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-17-34"
+  },
+  {
+    "num": 62,
+    "brand": "UNITY",
+    "name": "Карибський ром",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-17-38"
+  },
+  {
+    "num": 63,
+    "brand": "UNITY",
+    "name": "Purple Nectar",
+    "description": "Юдзу, мед, бузок",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-08-28, 16-08-28 (2)"
+  },
+  {
+    "num": 64,
+    "brand": "UNITY",
+    "name": "Voltage Gum (Hubba Bubba)",
+    "description": "Хуба Буба, енергетик, гуава",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-08-38"
+  },
+  {
+    "num": 65,
+    "brand": "UNITY",
+    "name": "Брауні",
+    "description": "Brownie",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня",
+    "sourceFiles": "16-07-48"
+  },
+  {
+    "num": 66,
+    "brand": "UNITY",
+    "name": "Кисла Марула",
+    "description": "Sour Marula",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-08-04"
+  },
+  {
+    "num": 67,
+    "brand": "UNITY",
+    "name": "Ягідне желе",
+    "description": "Berry Jelly",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-08-09, 16-08-10"
+  },
+  {
+    "num": 68,
+    "brand": "UNITY",
+    "name": "Ягоди з лавандою",
+    "description": "Berries with Lavender",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-08-26"
+  },
+  {
+    "num": 69,
+    "brand": "UNITY",
+    "name": "Полуничний тік-так",
+    "description": "Strawberry Tic-Tac",
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-08-27"
+  },
+  {
+    "num": 70,
+    "brand": "UNITY",
+    "name": "Морозиво з манго",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-08-50"
+  },
+  {
+    "num": 71,
+    "brand": "UNITY",
+    "name": "Ківі Лимонад",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-34"
+  },
+  {
+    "num": 72,
+    "brand": "UNITY",
+    "name": "Ананасові цукерки",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-37"
+  },
+  {
+    "num": 73,
+    "brand": "UNITY",
+    "name": "Лимонно-м'ятний сорбет",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-10-40"
+  },
+  {
+    "num": 74,
+    "brand": "CUSTOM",
+    "name": "Кислюча Малина",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня (рукопис)",
+    "sourceFiles": "16-10-43 (2)"
+  },
+  {
+    "num": 75,
+    "brand": "CUSTOM",
+    "name": "Тархун Трав'яний",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня (рукопис)",
+    "sourceFiles": "16-10-43 (3)"
+  },
+  {
+    "num": 76,
+    "brand": "CUSTOM",
+    "name": "Сидр, Яблуко",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня (рукопис)",
+    "sourceFiles": "16-10-43"
+  },
+  {
+    "num": 77,
+    "brand": "CUSTOM",
+    "name": "Шовковиця, Смузі",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня (рукопис)",
+    "sourceFiles": "16-10-44"
+  },
+  {
+    "num": 78,
+    "brand": "CUSTOM",
+    "name": "Помело, Лимон",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня (рукопис)",
+    "sourceFiles": "16-10-46"
+  },
+  {
+    "num": 79,
+    "brand": "CUSTOM",
+    "name": "Лонган, Фрукт",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня (рукопис)",
+    "sourceFiles": "16-10-48"
+  },
+  {
+    "num": 80,
+    "brand": "CUSTOM",
+    "name": "Кавун, Морозиво",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня (рукопис)",
+    "sourceFiles": "16-10-51 (2)"
+  },
+  {
+    "num": 81,
+    "brand": "CUSTOM",
+    "name": "Йошта, Агрус",
+    "description": null,
+    "strength_raw": "medium",
+    "weight_raw": null,
+    "confidence": "Середня (рукопис)",
+    "sourceFiles": "16-10-51"
+  },
+  {
+    "num": 82,
+    "brand": "420 LIGHT",
+    "name": "ЛАВ 66",
+    "description": "Диня, кавун, маракуйя і м'ята — «смак кохання»",
+    "strength_raw": "light",
+    "weight_raw": "250 г",
+    "confidence": "Висока",
+    "sourceFiles": "16-10-58"
+  },
+  {
+    "num": 83,
+    "brand": "420 LIGHT",
+    "name": "Яблучні ведмедики",
+    "description": "Смак дитинства з яблучним відтінком",
+    "strength_raw": "light",
+    "weight_raw": "250 г",
+    "confidence": "Висока",
+    "sourceFiles": "16-11-01"
+  },
+  {
+    "num": 84,
+    "brand": "420 LIGHT",
+    "name": "Ягідна жуйка",
+    "description": "Соковита ягідна історія",
+    "strength_raw": "light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-02 (2)"
+  },
+  {
+    "num": 85,
+    "brand": "420 LIGHT",
+    "name": "Свіжі ягоди",
+    "description": "Малина, смородина, чорниця",
+    "strength_raw": "light",
+    "weight_raw": "250 г",
+    "confidence": "Висока",
+    "sourceFiles": "16-11-02"
+  },
+  {
+    "num": 86,
+    "brand": "420 LIGHT",
+    "name": "Айс лимон м'ята",
+    "description": "Лимонна свіжість",
+    "strength_raw": "light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-06"
+  },
+  {
+    "num": 87,
+    "brand": "420 LIGHT",
+    "name": "Тропічний сік",
+    "description": "Соковитий смак тропіків",
+    "strength_raw": "light",
+    "weight_raw": "250 г",
+    "confidence": "Висока",
+    "sourceFiles": "16-11-07 (2)"
+  },
+  {
+    "num": 88,
+    "brand": "420 LIGHT",
+    "name": "Скіттлс",
+    "description": "Кисла цукерка",
+    "strength_raw": "light",
+    "weight_raw": "250 г",
+    "confidence": "Висока",
+    "sourceFiles": "16-11-07"
+  },
+  {
+    "num": 89,
+    "brand": "420 LIGHT",
+    "name": "Рожевий лимонад",
+    "description": "Рожева пристрасть",
+    "strength_raw": "light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-11"
+  },
+  {
+    "num": 90,
+    "brand": "420 LIGHT",
+    "name": "Грін мікс",
+    "description": "Зелена свіжість",
+    "strength_raw": "light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-13"
+  },
+  {
+    "num": 91,
+    "brand": "420 LIGHT",
+    "name": "Літній вайб",
+    "description": "Мікс, який наповнить тебе літнім настроєм",
+    "strength_raw": "light",
+    "weight_raw": null,
+    "confidence": "Висока",
+    "sourceFiles": "16-11-16"
+  },
+  {
+    "num": 92,
+    "brand": "420 LIGHT",
+    "name": "Цитрусовий лимонад",
+    "description": "Для поціновувачів цитрусової кислинки",
+    "strength_raw": "light",
+    "weight_raw": "250 г",
+    "confidence": "Висока",
+    "sourceFiles": "16-11-17"
+  }
+]

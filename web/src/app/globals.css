@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  --background: #1e1e20; /* graphite */
+  --panel: #2c2a28; /* warm charcoal, wood panel */
+  --foreground: #ede7dd; /* warm ivory */
+  --emerald: #1e5245; /* signature sofa green */
+  --emerald-light: #2f6e5c;
+  --brass: #b08d57; /* gold/brass accent stripe */
+  --terracotta: #8b5e3c; /* terrace wood / floor tile */
+  --amber-glow: #e8a33d; /* string lights / fire pit */
+  --muted: #9a9186;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-panel: var(--panel);
+  --color-foreground: var(--foreground);
+  --color-emerald: var(--emerald);
+  --color-emerald-light: var(--emerald-light);
+  --color-brass: var(--brass);
+  --color-terracotta: var(--terracotta);
+  --color-amber-glow: var(--amber-glow);
+  --color-muted: var(--muted);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Segoe UI", ui-sans-serif, system-ui, Arial, Helvetica, sans-serif;
+}
+
+.brass-rule {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--brass) 0px,
+    var(--brass) 2px,
+    transparent 2px,
+    transparent 34px
+  );
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--brass);
+  border-radius: 999px;
+}

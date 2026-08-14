@@ -1,0 +1,41 @@
+// Thin re-export so app code imports from "@/lib/db" instead of the workspace
+// package directly — keeps a single place to swap the data layer later.
+import {
+  db,
+  cuid,
+  sqlite,
+  brands,
+  flavors,
+  zones,
+  tableSpots,
+  bookings,
+  pickupOrders,
+  orderItems,
+  brandsRelations,
+  flavorsRelations,
+  zonesRelations,
+  tableSpotsRelations,
+  bookingsRelations,
+  pickupOrdersRelations,
+  orderItemsRelations,
+} from "@tyaga/db";
+
+export {
+  db,
+  cuid,
+  sqlite,
+  brands,
+  flavors,
+  zones,
+  tableSpots,
+  bookings,
+  pickupOrders,
+  orderItems,
+  brandsRelations,
+  flavorsRelations,
+  zonesRelations,
+  tableSpotsRelations,
+  bookingsRelations,
+  pickupOrdersRelations,
+  orderItemsRelations,
+};

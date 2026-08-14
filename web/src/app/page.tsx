@@ -1,0 +1,103 @@
+import Image from "next/image";
+import Link from "next/link";
+import { WORKING_HOURS } from "@/lib/constants";
+
+export default function Home() {
+  return (
+    <div>
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="/interior/lounge-1.jpg"
+            alt="Смарагдова кімната Tyaga Pyriatyn"
+            fill
+            priority
+            className="object-cover opacity-40"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background" />
+        </div>
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-24 sm:py-32 text-center">
+          <p className="text-brass tracking-[0.3em] text-xs sm:text-sm uppercase mb-4">
+            Кальян-лаунж · Пирятин
+          </p>
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight">
+            Tyaga <span className="text-emerald-light">Pyriatyn</span>
+          </h1>
+          <p className="mt-6 text-muted max-w-xl mx-auto">
+            Затишна смарагдова кімната та тераса з вогнищем. Забронюйте столик, оберіть смак
+            з нашого каталогу або заберіть свіжу забивку з собою.
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link
+              href="/booking"
+              className="rounded-full bg-emerald hover:bg-emerald-light transition-colors px-6 py-3 font-semibold"
+            >
+              Забронювати столик
+            </Link>
+            <Link
+              href="/menu"
+              className="rounded-full border border-brass/50 hover:bg-brass/10 transition-colors px-6 py-3 font-semibold"
+            >
+              Каталог смаків
+            </Link>
+            <Link
+              href="/order"
+              className="rounded-full border border-brass/50 hover:bg-brass/10 transition-colors px-6 py-3 font-semibold"
+            >
+              Забивка на виніс
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 grid gap-6 sm:grid-cols-3">
+        {[
+          {
+            title: "Столики",
+            text: "Оберіть місце на візуальній схемі — смарагдова кімната або тераса з вогнищем.",
+            href: "/booking",
+            img: "/interior/terrace-1.jpg",
+          },
+          {
+            title: "92 смаки табака",
+            text: "Фільтруйте за брендом та міцністю: легкі, середні, міцні.",
+            href: "/menu",
+            img: "/interior/lounge-2.jpg",
+          },
+          {
+            title: "Забивка на самовивіз",
+            text: "Зберіть свій мікс до 4 смаків, оберіть вугілля та час, коли забрати.",
+            href: "/order",
+            img: "/interior/bar-corner.jpg",
+          },
+        ].map((card) => (
+          <Link
+            key={card.href}
+            href={card.href}
+            className="group rounded-2xl overflow-hidden border border-brass/20 bg-panel hover:border-brass/50 transition-colors"
+          >
+            <div className="relative h-40">
+              <Image
+                src={card.img}
+                alt={card.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div className="p-5">
+              <h3 className="font-bold text-lg mb-1">{card.title}</h3>
+              <p className="text-sm text-muted">{card.text}</p>
+            </div>
+          </Link>
+        ))}
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-20">
+        <div className="rounded-2xl border border-brass/20 bg-panel p-8 text-center">
+          <p className="text-muted">{WORKING_HOURS}</p>
+          <p className="text-sm text-muted mt-1">м. Пирятин</p>
+        </div>
+      </section>
+    </div>
+  );
+}
