@@ -72,9 +72,10 @@ async function main() {
     { zone: "Смарагдова кімната", number: 3, capacity: 7, x: 80, y: 25, shape: "sofa" },
     { zone: "Смарагдова кімната", number: 4, capacity: 3, x: 50, y: 75, shape: "square" },
     // Тераса: кутовий стіл на 8, стіл на 2-4, стіл на 2-6 (capacity = максимум).
-    { zone: "Тераса", number: 5, capacity: 8, x: 15, y: 30, shape: "corner" },
-    { zone: "Тераса", number: 6, capacity: 4, x: 55, y: 25, shape: "square" },
-    { zone: "Тераса", number: 7, capacity: 6, x: 80, y: 65, shape: "sofa" },
+    // Координати підібрані під реальне фото тераси (web/public/interior/terrace-1.jpg).
+    { zone: "Тераса", number: 5, capacity: 8, x: 15, y: 22, shape: "corner" },
+    { zone: "Тераса", number: 6, capacity: 4, x: 52, y: 25, shape: "square" },
+    { zone: "Тераса", number: 7, capacity: 6, x: 60, y: 75, shape: "sofa" },
   ];
 
   for (const t of tableDefs) {
