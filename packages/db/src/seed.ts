@@ -183,7 +183,10 @@ async function main() {
     { id: "prod-takeaway-strong", name: "Забивка на виніс (важка)", category: "SERVICE", price: 200, unit: null, sortOrder: 5 },
     // Ціну виїзду власник проставляє сам в адмінці.
     { id: "prod-hookah-home", name: "Кальян додому (виїзд)", category: "SERVICE", price: 0, unit: null, sortOrder: 6 },
+    // Вугілля рахується поштучно — в калькуляторі просто тиснеш кілька разів.
+    { id: "prod-coal-piece", name: "Вугілля", category: "SERVICE", price: 10, unit: "1 шт", sortOrder: 7 },
     // Безалкогольне.
+    { id: "prod-tea", name: "Чай (в асортименті)", category: "DRINK", price: 120, unit: "чайник", sortOrder: 9 },
     { id: "prod-morshynska-lemonade", name: "Моршинська лимонад", category: "DRINK", price: 65, unit: null, sortOrder: 10 },
     { id: "prod-cola-can", name: "Кола (оригінал)", category: "DRINK", price: 55, unit: "залізна банка", sortOrder: 11 },
     { id: "prod-cola-zero-can", name: "Кола Zero", category: "DRINK", price: 55, unit: "залізна банка", sortOrder: 12 },
