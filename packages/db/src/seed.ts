@@ -175,11 +175,14 @@ async function main() {
   // seed його НЕ чіпає — інакше ціна, яку власник поправив в адмін-панелі,
   // затиралася б назад на кожному деплої.
   const productDefs = [
-    // Послуги — ціни власник проставляє сам в адмінці.
-    { id: "prod-hookah-classic", name: "Кальян (класика)", category: "SERVICE", price: 0, unit: null, sortOrder: 1 },
-    { id: "prod-hookah-premium", name: "Кальян (преміум)", category: "SERVICE", price: 0, unit: null, sortOrder: 2 },
-    { id: "prod-hookah-takeaway", name: "Забивка на виніс", category: "SERVICE", price: 0, unit: null, sortOrder: 3 },
-    { id: "prod-hookah-home", name: "Кальян додому (виїзд)", category: "SERVICE", price: 0, unit: null, sortOrder: 4 },
+    // Кальяни та забивки.
+    { id: "prod-hookah-classic", name: "Кальян (класика)", category: "SERVICE", price: 460, unit: null, sortOrder: 1 },
+    { id: "prod-hookah-premium", name: "Кальян (преміум)", category: "SERVICE", price: 500, unit: null, sortOrder: 2 },
+    { id: "prod-takeaway-light", name: "Забивка на виніс (легка)", category: "SERVICE", price: 150, unit: null, sortOrder: 3 },
+    { id: "prod-takeaway-medium", name: "Забивка на виніс (середня)", category: "SERVICE", price: 170, unit: null, sortOrder: 4 },
+    { id: "prod-takeaway-strong", name: "Забивка на виніс (важка)", category: "SERVICE", price: 200, unit: null, sortOrder: 5 },
+    // Ціну виїзду власник проставляє сам в адмінці.
+    { id: "prod-hookah-home", name: "Кальян додому (виїзд)", category: "SERVICE", price: 0, unit: null, sortOrder: 6 },
     // Безалкогольне.
     { id: "prod-morshynska-lemonade", name: "Моршинська лимонад", category: "DRINK", price: 65, unit: null, sortOrder: 10 },
     { id: "prod-cola-can", name: "Кола (оригінал)", category: "DRINK", price: 55, unit: "залізна банка", sortOrder: 11 },
@@ -195,10 +198,35 @@ async function main() {
     { id: "prod-chips", name: "Чіпси", category: "SNACK", price: 90, unit: null, sortOrder: 30 },
   ] as const;
 
+  // Позиції, що були в попередніх версіях прайсу і більше не потрібні
+  // (напр. одна спільна "Забивка на виніс" замість трьох за міцністю).
+  // Прибираємо тільки якщо ціну там так і не проставили — щоб не знести
+  // рядок, з яким власник уже працює.
+  const retiredProductIds = ["prod-hookah-takeaway"];
+  for (const id of retiredProductIds) {
+    const row = db.select().from(products).where(eq(products.id, id)).get();
+    if (row && row.price === 0) {
+      db.delete(products).where(eq(products.id, id)).run();
+    }
+  }
+
   let newProducts = 0;
+  let pricedProducts = 0;
   for (const p of productDefs) {
     const existing = db.select().from(products).where(eq(products.id, p.id)).get();
-    if (existing) continue;
+    if (existing) {
+      // Рядок уже є. Ціну чіпаємо лише в одному випадку: вона досі 0 (тобто
+      // її ніхто не проставляв), а в сіді з'явилося реальне число. Так ціни,
+      // відредаговані в адмін-панелі, ніколи не затираються деплоєм.
+      if (existing.price === 0 && p.price > 0) {
+        db.update(products)
+          .set({ price: p.price, updatedAt: new Date().toISOString() })
+          .where(eq(products.id, p.id))
+          .run();
+        pricedProducts += 1;
+      }
+      continue;
+    }
     db.insert(products)
       .values({
         id: p.id,
@@ -217,6 +245,7 @@ async function main() {
     `Done. ${created} flavors, ${Object.keys(zoneIds).length} zones, ${tableDefs.length} tables` +
       (removedBrands ? `, ${removedBrands} empty brand(s) removed` : "") +
       (newProducts ? `, ${newProducts} price-list item(s) added` : "") +
+      (pricedProducts ? `, ${pricedProducts} item(s) got a default price` : "") +
       "."
   );
 }
