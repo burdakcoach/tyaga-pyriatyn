@@ -125,6 +125,35 @@ export const homeOrders = sqliteTable("home_orders", {
   createdAt: text("created_at").notNull().default(sql`(current_timestamp)`),
 });
 
+// --- Прайс-лист (ТІЛЬКИ для адмінки) ----------------------------------------
+// Бар, кухня та послуги з цінами. Ця таблиця свідомо НЕ віддається жодним
+// публічним API-роутом і не рендериться на сайті — ціни потрібні лише для
+// внутрішніх калькуляцій власника (рахунок гостя, виторг за зміну).
+export const products = sqliteTable(
+  "products",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    // DRINK — безалкогольне, BEER — пиво, SNACK — снеки, SERVICE — послуги.
+    category: text("category", { enum: ["DRINK", "BEER", "SNACK", "SERVICE", "OTHER"] })
+      .notNull()
+      .default("OTHER"),
+    // Ціна продажу в гривнях.
+    price: real("price").notNull().default(0),
+    // Закупівельна ціна — опційна, для розрахунку маржі.
+    costPrice: real("cost_price"),
+    // Фасування/одиниця: "0.5 л", "банка 0.33", "порція" тощо.
+    unit: text("unit"),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: text("created_at").notNull().default(sql`(current_timestamp)`),
+    updatedAt: text("updated_at").notNull().default(sql`(current_timestamp)`),
+  },
+  (t) => ({
+    categoryIdx: index("products_category_idx").on(t.category),
+  })
+);
+
 export const orderItems = sqliteTable(
   "order_items",
   {

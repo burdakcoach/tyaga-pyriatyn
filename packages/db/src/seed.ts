@@ -1,5 +1,5 @@
 import { db, cuid } from "./index";
-import { brands, flavors, zones, tableSpots } from "./schema";
+import { brands, flavors, zones, tableSpots, products } from "./schema";
 import { eq } from "drizzle-orm";
 import flavorsRaw from "./flavors.json";
 
@@ -170,9 +170,53 @@ async function main() {
     }
   }
 
+  // --- Прайс бару (тільки для адмінки) --------------------------------------
+  // ВАЖЛИВО: позиції створюються один раз. Якщо рядок з таким id вже є в базі,
+  // seed його НЕ чіпає — інакше ціна, яку власник поправив в адмін-панелі,
+  // затиралася б назад на кожному деплої.
+  const productDefs = [
+    // Послуги — ціни власник проставляє сам в адмінці.
+    { id: "prod-hookah-classic", name: "Кальян (класика)", category: "SERVICE", price: 0, unit: null, sortOrder: 1 },
+    { id: "prod-hookah-premium", name: "Кальян (преміум)", category: "SERVICE", price: 0, unit: null, sortOrder: 2 },
+    { id: "prod-hookah-takeaway", name: "Забивка на виніс", category: "SERVICE", price: 0, unit: null, sortOrder: 3 },
+    { id: "prod-hookah-home", name: "Кальян додому (виїзд)", category: "SERVICE", price: 0, unit: null, sortOrder: 4 },
+    // Безалкогольне.
+    { id: "prod-morshynska-lemonade", name: "Моршинська лимонад", category: "DRINK", price: 65, unit: null, sortOrder: 10 },
+    { id: "prod-cola-can", name: "Кола (оригінал)", category: "DRINK", price: 55, unit: "залізна банка", sortOrder: 11 },
+    { id: "prod-cola-zero-can", name: "Кола Zero", category: "DRINK", price: 55, unit: "залізна банка", sortOrder: 12 },
+    { id: "prod-cola-05", name: "Кола (з цукром)", category: "DRINK", price: 60, unit: "пластик 0.5 л", sortOrder: 13 },
+    { id: "prod-cola-zero-05", name: "Кола Zero", category: "DRINK", price: 60, unit: "пластик 0.5 л", sortOrder: 14 },
+    // Пиво.
+    { id: "prod-beer-opillia-zero", name: "Опілля Zero", category: "BEER", price: 85, unit: null, sortOrder: 20 },
+    { id: "prod-beer-grimbergen", name: "Грімберген", category: "BEER", price: 85, unit: null, sortOrder: 21 },
+    { id: "prod-beer-pravda", name: "Правда", category: "BEER", price: 75, unit: null, sortOrder: 22 },
+    { id: "prod-beer-hike", name: "Хайк", category: "BEER", price: 65, unit: null, sortOrder: 23 },
+    // Снеки.
+    { id: "prod-chips", name: "Чіпси", category: "SNACK", price: 90, unit: null, sortOrder: 30 },
+  ] as const;
+
+  let newProducts = 0;
+  for (const p of productDefs) {
+    const existing = db.select().from(products).where(eq(products.id, p.id)).get();
+    if (existing) continue;
+    db.insert(products)
+      .values({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        price: p.price,
+        unit: p.unit,
+        sortOrder: p.sortOrder,
+        active: true,
+      })
+      .run();
+    newProducts += 1;
+  }
+
   console.log(
     `Done. ${created} flavors, ${Object.keys(zoneIds).length} zones, ${tableDefs.length} tables` +
       (removedBrands ? `, ${removedBrands} empty brand(s) removed` : "") +
+      (newProducts ? `, ${newProducts} price-list item(s) added` : "") +
       "."
   );
 }
