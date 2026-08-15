@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and, ne } from "drizzle-orm";
-import { db, bookings, tableSpots, cuid } from "@/lib/db";
+import { db, bookings, tableSpots, zones, cuid } from "@/lib/db";
+import { notifyAdmin, escapeHtml } from "@/lib/telegram";
 
 type BookingBody = {
   tableSpotId: string;
@@ -73,5 +74,17 @@ export async function POST(request: NextRequest) {
     .run();
 
   const created = db.select().from(bookings).where(eq(bookings.id, id)).get();
+
+  const zone = db.select().from(zones).where(eq(zones.id, table.zoneId)).get();
+  await notifyAdmin(
+    `🆕 <b>Нове бронювання столика</b> (сайт)\n` +
+      `Столик №${table.number}${zone ? ` (${escapeHtml(zone.name)})` : ""}\n` +
+      `Дата: ${escapeHtml(date)} о ${escapeHtml(timeSlot)}\n` +
+      `Гостей: ${guests}\n` +
+      `Ім'я: ${escapeHtml(customerName.trim())}\n` +
+      `Телефон: ${escapeHtml(phone.trim())}` +
+      (comment?.trim() ? `\nКоментар: ${escapeHtml(comment.trim())}` : "")
+  );
+
   return NextResponse.json({ booking: created }, { status: 201 });
 }

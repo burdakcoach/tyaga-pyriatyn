@@ -33,6 +33,11 @@ export default function OrderPage() {
     fetch("/api/flavors")
       .then((r) => r.json())
       .then((d) => setFlavors(d.flavors));
+
+    // Coming from "📦 Замовити на самовивіз" on a flavor card in /menu —
+    // pre-select that flavor so the guest doesn't have to search for it again.
+    const flavorId = new URLSearchParams(window.location.search).get("flavor");
+    if (flavorId) setSelected([flavorId]);
   }, []);
 
   const filtered = useMemo(

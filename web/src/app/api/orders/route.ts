@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, inArray } from "drizzle-orm";
 import { db, pickupOrders, orderItems, flavors, cuid } from "@/lib/db";
+import { notifyAdmin, escapeHtml } from "@/lib/telegram";
+
+const COAL_LABEL: Record<string, string> = {
+  COCONUT: "Кокосове вугілля",
+  QUICKLIGHT: "Швидкозаймисте",
+  NONE: "Без вугілля",
+};
 
 type OrderBody = {
   customerName: string;
@@ -68,5 +75,16 @@ export async function POST(request: NextRequest) {
   }
 
   const created = db.select().from(pickupOrders).where(eq(pickupOrders.id, orderId)).get();
+
+  await notifyAdmin(
+    `🆕 <b>Нове замовлення на самовивіз</b> (сайт)\n` +
+      `Смаки: ${escapeHtml(foundFlavors.map((f) => f.name).join(", "))}\n` +
+      `Вугілля: ${COAL_LABEL[body.coalType || "COCONUT"]}\n` +
+      `Самовивіз: ${escapeHtml(pickupDate)} о ${escapeHtml(pickupTime)}\n` +
+      `Ім'я: ${escapeHtml(customerName.trim())}\n` +
+      `Телефон: ${escapeHtml(phone.trim())}` +
+      (body.comment?.trim() ? `\nКоментар: ${escapeHtml(body.comment.trim())}` : "")
+  );
+
   return NextResponse.json({ order: created }, { status: 201 });
 }

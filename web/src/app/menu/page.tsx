@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { STRENGTH_LABEL, STRENGTH_COLOR } from "@/lib/constants";
 import type { BrandDTO, FlavorDTO, Strength } from "@/types";
 
@@ -95,9 +96,10 @@ export default function MenuPage() {
               <h2 className="text-xl font-bold mb-4 text-brass">{brandName}</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((f) => (
-                  <div
+                  <Link
+                    href={`/order?flavor=${f.id}`}
                     key={f.id}
-                    className="rounded-xl border border-brass/20 bg-panel overflow-hidden hover:border-brass/50 transition-colors"
+                    className="block rounded-xl border border-brass/20 bg-panel overflow-hidden hover:border-brass/50 transition-colors"
                   >
                     <div className="relative w-full aspect-square bg-black/30">
                       {f.imageUrl ? (
@@ -127,8 +129,11 @@ export default function MenuPage() {
                       {f.weightGrams && (
                         <p className="text-xs text-muted/70 mt-2">{f.weightGrams} г</p>
                       )}
+                      <span className="mt-3 inline-block text-xs font-semibold text-brass">
+                        📦 Замовити на самовивіз →
+                      </span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
