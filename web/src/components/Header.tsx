@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { TELEGRAM_BOT_URL } from "@/lib/constants";
 
@@ -14,7 +15,8 @@ export default function Header() {
       <div className="h-[3px] brass-rule" />
       <div className="mx-auto max-w-6xl px-4 sm:px-6 flex items-center justify-between h-16">
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="text-xl font-extrabold tracking-wide text-foreground">
+          <Image src="/logo.png" alt="Tyaga" width={40} height={36} className="h-9 w-auto" priority />
+          <span className="hidden xs:inline text-xl font-extrabold tracking-wide text-foreground">
             Tyaga <span className="text-emerald-light">Pyriatyn</span>
           </span>
         </Link>

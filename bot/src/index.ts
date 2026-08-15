@@ -1,5 +1,5 @@
 import { Telegraf, Scenes, session } from "telegraf";
-import { BOT_TOKEN } from "./env.js";
+import { BOT_TOKEN, WEBAPP_URL } from "./env.js";
 import { mainMenuKeyboard } from "./keyboards/main.js";
 import { registerMenuHandlers } from "./menu.js";
 import { bookingWizard } from "./scenes/booking.js";
@@ -23,6 +23,11 @@ bot.use(stage.middleware());
 const WELCOME = `Вітаємо в <b>${SITE_NAME}</b> 🍃\n\n${WORKING_HOURS}\n\nОберіть дію:`;
 
 bot.start(async (ctx) => {
+  // Logo as its own message (not a photo+caption combo) so every later screen
+  // can keep using editMessageText on the WELCOME message below it.
+  if (WEBAPP_URL) {
+    await ctx.replyWithPhoto(`${WEBAPP_URL}/logo.png`).catch(() => {});
+  }
   await ctx.reply(WELCOME, { parse_mode: "HTML", ...mainMenuKeyboard() });
 });
 
@@ -45,6 +50,14 @@ bot.action("info", async (ctx) => {
 bot.action("booking:start", (ctx) => ctx.scene.enter("booking"));
 bot.action("order:start", (ctx) => ctx.scene.enter("order"));
 
+// "📦 Замовити на самовивіз" tapped from a flavor's detail card — jump straight
+// into the order wizard with that flavor already selected.
+bot.action(/^ord:quick:(.+)$/, async (ctx) => {
+  await ctx.answerCbQuery().catch(() => {});
+  const flavorId = ctx.match[1];
+  return ctx.scene.enter("order", { preselected: flavorId });
+});
+
 bot.command("book", (ctx) => ctx.scene.enter("booking"));
 bot.command("order", (ctx) => ctx.scene.enter("order"));
 bot.command("menu", async (ctx) => {
@@ -55,6 +68,7 @@ registerMenuHandlers(bot);
 
 bot.catch((err, ctx) => {
   console.error(`Bot error for update ${ctx.updateType}:`, err);
+  ctx.reply("Щось пішло не так. Спробуйте /menu ще раз або зверніться до закладу.").catch(() => {});
 });
 
 bot.launch().then(() => {
