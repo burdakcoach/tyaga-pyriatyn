@@ -62,7 +62,7 @@ export default function Home() {
             title: "92 смаки табака",
             text: "Фільтруйте за брендом та міцністю: легкі, середні, міцні.",
             href: "/menu",
-            img: "/interior/lounge-2.jpg",
+            img: "/interior/tobacco-counter.jpg",
           },
           {
             title: "Забивка на самовивіз",
