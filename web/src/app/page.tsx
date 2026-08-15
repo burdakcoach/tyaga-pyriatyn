@@ -92,6 +92,41 @@ export default function Home() {
         ))}
       </section>
 
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-16">
+        <h2 className="text-2xl font-bold mb-6 text-center">Атмосфера Tyaga</h2>
+        <div className="grid gap-6 sm:grid-cols-2">
+          {[
+            {
+              img: "/interior/neon-hookahs.jpg",
+              title: "Неонові вечори",
+              text: "Кожна забивка тліє у своєму кольорі — світло тут таке ж частина настрою, як і дим.",
+            },
+            {
+              img: "/interior/lounge-vibe.jpg",
+              title: "Тут можна залипнути надовго",
+              text: "Кальян, екран і хороша компанія — і час якось непомітно зникає.",
+            },
+          ].map((item) => (
+            <div
+              key={item.img}
+              className="group relative rounded-2xl overflow-hidden border border-brass/20 h-72 sm:h-96"
+            >
+              <Image
+                src={item.img}
+                alt={item.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-5">
+                <h3 className="font-bold text-lg">{item.title}</h3>
+                <p className="text-sm text-muted mt-1">{item.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-20">
         <div className="rounded-2xl border border-brass/20 bg-panel p-8 text-center">
           <p className="text-muted">{WORKING_HOURS}</p>
