@@ -33,7 +33,10 @@ export default function Footer() {
         </div>
       </div>
       <div className="text-center text-xs text-muted/70 pb-6">
-        © {new Date().getFullYear()} Tyaga Pyriatyn
+        © {new Date().getFullYear()} Tyaga Pyriatyn ·{" "}
+        <a href="/admin" className="hover:text-brass">
+          Адмін
+        </a>
       </div>
     </footer>
   );

@@ -48,9 +48,12 @@ export const orderWizard = new Scenes.WizardScene<Scenes.WizardContext>(
 
   // Step 0 — enter, show flavor picker
   async (ctx) => {
-    (ctx.wizard.state as any).selected = [];
+    // Coming from "📦 Замовити на самовивіз" on a specific flavor card — pre-select it.
+    const preselected = (ctx.scene.state as any)?.preselected as string | undefined;
+    const selected = preselected ? [preselected] : [];
+    (ctx.wizard.state as any).selected = selected;
     (ctx.wizard.state as any).page = 0;
-    const { text, markup } = renderFlavorPage(0, []);
+    const { text, markup } = renderFlavorPage(0, selected);
     await ctx.reply(`Забивка на самовивіз 📦\n\n${text}`, markup);
     return ctx.wizard.next();
   },
