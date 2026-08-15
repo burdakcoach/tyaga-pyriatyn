@@ -6,6 +6,7 @@ const NAV = [
   { href: "/menu", label: "Смаки" },
   { href: "/booking", label: "Столики" },
   { href: "/order", label: "Забивка на виніс" },
+  { href: "/delivery", label: "Кальян додому" },
   { href: "/contacts", label: "Контакти" },
 ];
 

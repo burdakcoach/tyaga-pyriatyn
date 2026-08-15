@@ -50,7 +50,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 grid gap-6 sm:grid-cols-3">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {[
           {
             title: "Столики",
@@ -69,6 +69,12 @@ export default function Home() {
             text: "Зберіть свій мікс до 4 смаків, оберіть вугілля та час, коли забрати.",
             href: "/order",
             img: "/interior/bar-corner.jpg",
+          },
+          {
+            title: "Кальян додому",
+            text: "Привеземо повний сетап туди, де зручно вам — додому, на пікнік чи подію.",
+            href: "/delivery",
+            img: "/delivery/delivery-1.jpg",
           },
         ].map((card) => (
           <Link

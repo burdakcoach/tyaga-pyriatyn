@@ -106,6 +106,25 @@ export const pickupOrders = sqliteTable("pickup_orders", {
   createdAt: text("created_at").notNull().default(sql`(current_timestamp)`),
 });
 
+export const homeOrders = sqliteTable("home_orders", {
+  id: text("id").primaryKey(),
+  customerName: text("customer_name").notNull(),
+  phone: text("phone").notNull(),
+  address: text("address").notNull(),
+  telegramUserId: text("telegram_user_id"),
+  telegramUsername: text("telegram_username"),
+  eventDate: text("event_date").notNull(),
+  eventTime: text("event_time").notNull(),
+  guests: integer("guests"),
+  comment: text("comment"),
+  status: text("status", {
+    enum: ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"],
+  })
+    .notNull()
+    .default("PENDING"),
+  createdAt: text("created_at").notNull().default(sql`(current_timestamp)`),
+});
+
 export const orderItems = sqliteTable(
   "order_items",
   {
