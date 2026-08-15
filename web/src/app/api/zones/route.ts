@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, ne, and } from "drizzle-orm";
-import { db, zones, tableSpots, bookings } from "@/lib/db";
+import { db, zones, tableSpots, bookings, checks } from "@/lib/db";
 
 // Returns all zones with their tables. If `date` and `time` query params are
 // given, each table also gets `isBooked` for that slot so the floor plan can
 // grey out unavailable spots.
+//
+// `isOccupied` — на столику просто зараз відкритий чек, тобто там сидять гості.
+// Віддаємо лише прапорець: ані сум, ані позицій чека гість не бачить.
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const date = searchParams.get("date");
@@ -25,11 +28,24 @@ export async function GET(request: NextRequest) {
     bookedTableIds = new Set(existing.map((b) => b.tableSpotId));
   }
 
+  const occupiedTableIds = new Set(
+    db
+      .select({ tableSpotId: checks.tableSpotId })
+      .from(checks)
+      .where(eq(checks.status, "OPEN"))
+      .all()
+      .map((c) => c.tableSpotId)
+  );
+
   const result = zoneRows.map((zone) => ({
     ...zone,
     tables: tableRows
       .filter((t) => t.zoneId === zone.id)
-      .map((t) => ({ ...t, isBooked: bookedTableIds.has(t.id) }))
+      .map((t) => ({
+        ...t,
+        isBooked: bookedTableIds.has(t.id),
+        isOccupied: occupiedTableIds.has(t.id),
+      }))
       .sort((a, b) => a.number - b.number),
   }));
 

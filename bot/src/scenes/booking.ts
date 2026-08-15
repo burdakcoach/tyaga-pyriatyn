@@ -1,6 +1,6 @@
 import { Scenes, Markup } from "telegraf";
 import { eq, and, ne } from "drizzle-orm";
-import { db, zones, tableSpots, bookings, cuid } from "@tyaga/db";
+import { db, zones, tableSpots, bookings, checks, cuid } from "@tyaga/db";
 import { upcomingDays, TIME_SLOTS } from "../lib/dates.js";
 import { ADMIN_CHAT_ID } from "../env.js";
 
@@ -109,13 +109,25 @@ export const bookingWizard = new Scenes.WizardScene<Scenes.WizardContext>(
       .where(and(eq(bookings.date, state.date), eq(bookings.timeSlot, time), ne(bookings.status, "CANCELLED")))
       .all();
     const bookedIds = new Set(existing.map((e) => e.tableSpotId));
+    // Столики з відкритим чеком — там просто зараз сидять гості.
+    const occupiedIds = new Set(
+      db
+        .select({ tableSpotId: checks.tableSpotId })
+        .from(checks)
+        .where(eq(checks.status, "OPEN"))
+        .all()
+        .map((c) => c.tableSpotId)
+    );
     const available = allTables
-      .filter((t) => !bookedIds.has(t.id) && t.capacity >= state.guests)
+      .filter((t) => !bookedIds.has(t.id) && !occupiedIds.has(t.id) && t.capacity >= state.guests)
       .sort((a, b) => a.number - b.number);
 
     if (available.length === 0) {
+      const smokyCount = allTables.filter((t) => occupiedIds.has(t.id)).length;
       await ctx.editMessageText(
-        `На жаль, у зоні «${state.zoneName}» немає вільних столиків на ${state.guests} гостей о ${time} ${state.date}.\n\nСпробуйте інший час або зону — /start`,
+        `На жаль, у зоні «${state.zoneName}» немає вільних столиків на ${state.guests} гостей о ${time} ${state.date}.` +
+          (smokyCount ? `\n\nЧастина місць зайнята просто зараз — там вже димно 🙂` : "") +
+          `\n\nСпробуйте інший час або зону — /start`,
         Markup.inlineKeyboard([cancelRow])
       );
       return ctx.scene.leave();
@@ -208,6 +220,20 @@ export const bookingWizard = new Scenes.WizardScene<Scenes.WizardContext>(
     await ctx.answerCbQuery();
 
     const s = ctx.wizard.state as any;
+    // Поки гість заповнював ім'я й телефон, адмін міг посадити когось за цей
+    // столик — перевіряємо ще раз перед записом.
+    const openCheck = db
+      .select()
+      .from(checks)
+      .where(and(eq(checks.tableSpotId, s.tableId), eq(checks.status, "OPEN")))
+      .get();
+    if (openCheck) {
+      await ctx.editMessageText(
+        "Тут вже димно 🙂 Цей столик щойно зайняли. Оберіть інший — /start"
+      );
+      return ctx.scene.leave();
+    }
+
     const clash = db
       .select()
       .from(bookings)

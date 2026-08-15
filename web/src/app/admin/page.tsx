@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { COAL_LABEL } from "@/lib/constants";
+import type { ZoneDTO, TableDTO } from "@/types";
 
 type Booking = {
   id: string;
@@ -54,12 +55,35 @@ type Product = {
   sortOrder: number;
 };
 
+type CheckItem = {
+  id: string;
+  productId: string | null;
+  name: string;
+  price: number;
+  qty: number;
+};
+
+type Check = {
+  id: string;
+  tableSpotId: string;
+  status: "OPEN" | "CLOSED";
+  total: number;
+  guests: number | null;
+  comment: string | null;
+  openedAt: string;
+  closedAt: string | null;
+  tableNumber: number | null;
+  zoneName: string | null;
+  items: CheckItem[];
+};
+
 const TABS = [
+  { key: "tables", label: "Столи" },
   { key: "bookings", label: "Бронювання" },
   { key: "orders", label: "Забивки на самовивіз" },
   { key: "home", label: "Кальян додому" },
   { key: "prices", label: "Бар і ціни" },
-  { key: "calc", label: "Калькулятор" },
+  { key: "total", label: "Тотал" },
 ] as const;
 
 const STATUS_COLOR: Record<string, string> = {
@@ -96,16 +120,58 @@ function fmtMoney(n: number) {
   return `${Number.isInteger(n) ? n : n.toFixed(2)} ₴`;
 }
 
+// Час у базі приходить у двох форматах: ISO з "Z" (ставимо ми) і
+// "YYYY-MM-DD HH:MM:SS" (дефолт SQLite, це UTC). Приводимо обидва до Date.
+function toDate(value: string | null): Date | null {
+  if (!value) return null;
+  const normalized = value.includes("T") ? value : `${value.replace(" ", "T")}Z`;
+  const d = new Date(normalized);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function fmtTime(value: string | null) {
+  const d = toDate(value);
+  return d ? d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" }) : "—";
+}
+
+// Ключ дня в локальному часі власника (sv-SE дає рівно YYYY-MM-DD).
+function dayKey(value: string | null) {
+  const d = toDate(value);
+  return d ? d.toLocaleDateString("sv-SE") : "—";
+}
+
+function fmtDayLabel(key: string) {
+  const today = new Date().toLocaleDateString("sv-SE");
+  if (key === today) return "Сьогодні";
+  const d = new Date(`${key}T12:00:00`);
+  return Number.isNaN(d.getTime())
+    ? key
+    : d.toLocaleDateString("uk-UA", { day: "numeric", month: "long", weekday: "short" });
+}
+
 export default function AdminPage() {
-  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("bookings");
+  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("tables");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [orders, setOrders] = useState<PickupOrder[]>([]);
   const [homeOrders, setHomeOrders] = useState<HomeOrder[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [zones, setZones] = useState<ZoneDTO[]>([]);
+  const [openChecks, setOpenChecks] = useState<Check[]>([]);
+  const [closedChecks, setClosedChecks] = useState<Check[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
 
-  // Рахунок у калькуляторі: id позиції -> кількість.
-  const [bill, setBill] = useState<Record<string, number>>({});
+  // Столи й чеки оновлюються найчастіше, тому винесені в окрему функцію —
+  // після кожного натискання позиції не тягнемо весь дашборд заново.
+  const loadChecks = useCallback(async () => {
+    const [c, z] = await Promise.all([
+      fetch("/api/admin/checks").then((r) => r.json()),
+      fetch("/api/zones").then((r) => r.json()),
+    ]);
+    setOpenChecks(c.open || []);
+    setClosedChecks(c.closed || []);
+    setZones(z.zones || []);
+  }, []);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -114,6 +180,7 @@ export default function AdminPage() {
       fetch("/api/admin/orders").then((r) => r.json()),
       fetch("/api/admin/home-orders").then((r) => r.json()),
       fetch("/api/admin/products").then((r) => r.json()),
+      loadChecks(),
     ])
       .then(([b, o, h, p]) => {
         setBookings(b.bookings || []);
@@ -122,7 +189,7 @@ export default function AdminPage() {
         setProducts(p.products || []);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [loadChecks]);
 
   useEffect(() => {
     load();
@@ -141,7 +208,6 @@ export default function AdminPage() {
   // --- Прайс -----------------------------------------------------------------
 
   async function patchProduct(id: string, patch: Partial<Product>) {
-    // Оптимістично оновлюємо локально, щоб поле не «стрибало» під час набору.
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
     await fetch("/api/admin/products", {
       method: "PATCH",
@@ -152,12 +218,33 @@ export default function AdminPage() {
 
   async function deleteProduct(id: string) {
     setProducts((prev) => prev.filter((p) => p.id !== id));
-    setBill((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
     await fetch(`/api/admin/products?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+  }
+
+  // --- Чеки ------------------------------------------------------------------
+
+  async function openCheck(tableSpotId: string) {
+    await fetch("/api/admin/checks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tableSpotId }),
+    });
+    setSelectedTableId(tableSpotId);
+    await loadChecks();
+  }
+
+  async function checkAction(checkId: string, payload: Record<string, unknown>) {
+    await fetch("/api/admin/checks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ checkId, ...payload }),
+    });
+    await loadChecks();
+  }
+
+  async function cancelCheck(checkId: string) {
+    await fetch(`/api/admin/checks?id=${encodeURIComponent(checkId)}`, { method: "DELETE" });
+    await loadChecks();
   }
 
   const grouped = useMemo(() => {
@@ -170,25 +257,19 @@ export default function AdminPage() {
     return CATEGORY_ORDER.filter((c) => map.has(c)).map((c) => ({ category: c, items: map.get(c)! }));
   }, [products]);
 
-  const billLines = useMemo(
-    () =>
-      Object.entries(bill)
-        .map(([id, qty]) => {
-          const product = products.find((p) => p.id === id);
-          return product ? { product, qty, sum: product.price * qty } : null;
-        })
-        .filter((l): l is { product: Product; qty: number; sum: number } => l !== null),
-    [bill, products]
-  );
-
-  const billTotal = billLines.reduce((acc, l) => acc + l.sum, 0);
+  const openByTable = useMemo(() => {
+    const map = new Map<string, Check>();
+    for (const c of openChecks) map.set(c.tableSpotId, c);
+    return map;
+  }, [openChecks]);
 
   const pendingCounts: Record<string, number> = {
+    tables: openChecks.length,
     bookings: bookings.filter((b) => b.status === "PENDING").length,
     orders: orders.filter((o) => o.status === "PENDING").length,
     home: homeOrders.filter((h) => h.status === "PENDING").length,
     prices: 0,
-    calc: 0,
+    total: 0,
   };
 
   function StatusSelect({
@@ -257,6 +338,19 @@ export default function AdminPage() {
         <p className="text-muted">Завантаження...</p>
       ) : (
         <>
+          {tab === "tables" && (
+            <Tables
+              zones={zones}
+              openByTable={openByTable}
+              grouped={grouped}
+              selectedTableId={selectedTableId}
+              onSelectTable={setSelectedTableId}
+              onOpenCheck={openCheck}
+              onCheckAction={checkAction}
+              onCancelCheck={cancelCheck}
+            />
+          )}
+
           {tab === "bookings" && (
             <div className="space-y-3">
               {bookings.length === 0 && <p className="text-muted">Бронювань поки немає.</p>}
@@ -354,17 +448,368 @@ export default function AdminPage() {
             />
           )}
 
-          {tab === "calc" && (
-            <Calculator
-              grouped={grouped}
-              bill={bill}
-              lines={billLines}
-              total={billTotal}
-              setBill={setBill}
-            />
-          )}
+          {tab === "total" && <Total checks={closedChecks} />}
         </>
       )}
+    </div>
+  );
+}
+
+// --- Вкладка «Столи» ---------------------------------------------------------
+
+function Tables({
+  zones,
+  openByTable,
+  grouped,
+  selectedTableId,
+  onSelectTable,
+  onOpenCheck,
+  onCheckAction,
+  onCancelCheck,
+}: {
+  zones: ZoneDTO[];
+  openByTable: Map<string, Check>;
+  grouped: { category: string; items: Product[] }[];
+  selectedTableId: string | null;
+  onSelectTable: (id: string | null) => void;
+  onOpenCheck: (tableSpotId: string) => Promise<void>;
+  onCheckAction: (checkId: string, payload: Record<string, unknown>) => Promise<void>;
+  onCancelCheck: (checkId: string) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  // Зберігаємо саме id чека, до якого належить підтвердження. Так при переході
+  // на інший столик кнопка сама повертається у вихідний стан — і неможливо
+  // випадково натиснути «Так, закрити» на чужому чеку.
+  const [confirmCloseId, setConfirmCloseId] = useState<string | null>(null);
+
+  const allTables: TableDTO[] = zones.flatMap((z) => z.tables);
+  const selectedTable = allTables.find((t) => t.id === selectedTableId) || null;
+  const selectedZone = zones.find((z) => z.tables.some((t) => t.id === selectedTableId));
+  const activeCheck = selectedTableId ? openByTable.get(selectedTableId) || null : null;
+  const confirmClose = activeCheck !== null && confirmCloseId === activeCheck.id;
+
+  async function run(fn: () => Promise<void>) {
+    setBusy(true);
+    try {
+      await fn();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {zones.map((zone) => (
+        <div key={zone.id}>
+          <h2 className="text-sm font-semibold text-brass uppercase tracking-wide mb-2">
+            {zone.name}
+          </h2>
+          <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+            {zone.tables.map((t) => {
+              const check = openByTable.get(t.id);
+              const isSelected = t.id === selectedTableId;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => onSelectTable(isSelected ? null : t.id)}
+                  className={`rounded-xl border p-3 text-left transition-colors ${
+                    isSelected
+                      ? "border-brass bg-brass/10"
+                      : check
+                      ? "border-terracotta/60 bg-terracotta/10 hover:border-terracotta"
+                      : "border-brass/20 bg-panel hover:border-brass/50"
+                  }`}
+                >
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-bold">Столик №{t.number}</span>
+                    <span className="text-xs text-muted">до {t.capacity}</span>
+                  </div>
+                  {check ? (
+                    <>
+                      <p className="text-xs text-amber-glow mt-1">
+                        Димно 💨 з {fmtTime(check.openedAt)}
+                      </p>
+                      <p className="text-sm font-semibold text-brass mt-0.5">
+                        {fmtMoney(check.total)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-emerald-light mt-1">Вільно</p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {selectedTable && (
+        <div className="rounded-2xl border border-brass/30 bg-panel p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h2 className="text-lg font-bold">
+              Столик №{selectedTable.number}
+              {selectedZone ? ` · ${selectedZone.name}` : ""}
+            </h2>
+            <button
+              onClick={() => onSelectTable(null)}
+              className="text-xs text-muted hover:text-brass"
+            >
+              Закрити картку
+            </button>
+          </div>
+
+          {!activeCheck ? (
+            <div>
+              <p className="text-sm text-muted mb-3">
+                Чек не відкритий. Столик доступний для бронювання з сайту й бота.
+              </p>
+              <button
+                disabled={busy}
+                onClick={() => run(() => onOpenCheck(selectedTable.id))}
+                className="rounded-full bg-emerald px-5 py-2.5 font-semibold disabled:opacity-40"
+              >
+                Відкрити чек
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-[1fr_320px] items-start">
+              <div className="space-y-5">
+                <p className="text-sm text-muted">
+                  Натискайте позиції, щоб додати їх у рахунок.
+                </p>
+                {grouped.map(({ category, items }) => {
+                  const available = items.filter((p) => p.active);
+                  if (available.length === 0) return null;
+                  return (
+                    <div key={category}>
+                      <h3 className="text-sm font-semibold text-brass uppercase tracking-wide mb-2">
+                        {CATEGORY_LABEL[category] || category}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {available.map((p) => {
+                          const inBill = activeCheck.items.find((i) => i.productId === p.id);
+                          return (
+                            <button
+                              key={p.id}
+                              disabled={busy}
+                              onClick={() =>
+                                run(() =>
+                                  onCheckAction(activeCheck.id, { action: "add", productId: p.id })
+                                )
+                              }
+                              className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors disabled:opacity-50 ${
+                                inBill
+                                  ? "border-emerald bg-emerald/20"
+                                  : "border-brass/20 bg-background/40 hover:border-brass/50"
+                              }`}
+                            >
+                              <span className="block">{p.name}</span>
+                              <span className="block text-xs text-muted">
+                                {fmtMoney(p.price)}
+                                {p.unit ? ` · ${p.unit}` : ""}
+                                {inBill ? ` · ×${inBill.qty}` : ""}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="rounded-xl border border-brass/20 bg-background/40 p-4 lg:sticky lg:top-24">
+                <div className="flex items-baseline justify-between mb-3">
+                  <h3 className="font-semibold">Рахунок</h3>
+                  <span className="text-xs text-muted">з {fmtTime(activeCheck.openedAt)}</span>
+                </div>
+
+                {activeCheck.items.length === 0 ? (
+                  <p className="text-sm text-muted">Поки порожньо.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {activeCheck.items.map((i) => (
+                      <div key={i.id} className="flex items-center gap-2 text-sm">
+                        <span className="min-w-0 flex-1 truncate">{i.name}</span>
+                        <span className="flex items-center gap-1">
+                          <button
+                            disabled={busy}
+                            onClick={() =>
+                              run(() =>
+                                onCheckAction(activeCheck.id, { action: "remove", itemId: i.id })
+                              )
+                            }
+                            className="w-6 h-6 rounded-full border border-brass/30 leading-none disabled:opacity-40"
+                          >
+                            −
+                          </button>
+                          <span className="w-6 text-center">{i.qty}</span>
+                          <button
+                            // Якщо позицію встигли видалити з прайсу, додати
+                            // ще одну таку вже нема звідки — лишається тільки «−».
+                            disabled={busy || !i.productId}
+                            onClick={() =>
+                              run(() =>
+                                onCheckAction(activeCheck.id, {
+                                  action: "add",
+                                  productId: i.productId,
+                                })
+                              )
+                            }
+                            className="w-6 h-6 rounded-full border border-brass/30 leading-none disabled:opacity-40"
+                          >
+                            +
+                          </button>
+                        </span>
+                        <span className="w-20 text-right tabular-nums">
+                          {fmtMoney(i.price * i.qty)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-4 pt-3 border-t border-brass/20 flex items-baseline justify-between">
+                  <span className="text-sm text-muted">Разом</span>
+                  <span className="text-xl font-extrabold text-brass tabular-nums">
+                    {fmtMoney(activeCheck.total)}
+                  </span>
+                </div>
+
+                {activeCheck.items.length > 0 ? (
+                  confirmClose ? (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-sm text-muted">
+                        Закрити чек на {fmtMoney(activeCheck.total)}? Столик знову стане вільним.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            run(async () => {
+                              await onCheckAction(activeCheck.id, { action: "close" });
+                              setConfirmCloseId(null);
+                              onSelectTable(null);
+                            })
+                          }
+                          className="flex-1 rounded-full bg-emerald px-4 py-2.5 font-semibold disabled:opacity-40"
+                        >
+                          Так, закрити
+                        </button>
+                        <button
+                          onClick={() => setConfirmCloseId(null)}
+                          className="rounded-full border border-brass/30 px-4 py-2.5 text-sm"
+                        >
+                          Ні
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      disabled={busy}
+                      onClick={() => setConfirmCloseId(activeCheck.id)}
+                      className="mt-4 w-full rounded-full bg-emerald px-4 py-2.5 font-semibold disabled:opacity-40"
+                    >
+                      Закрити чек
+                    </button>
+                  )
+                ) : (
+                  <button
+                    disabled={busy}
+                    onClick={() =>
+                      run(async () => {
+                        await onCancelCheck(activeCheck.id);
+                        onSelectTable(null);
+                      })
+                    }
+                    className="mt-4 w-full rounded-full border border-terracotta/60 px-4 py-2.5 text-sm disabled:opacity-40"
+                  >
+                    Скасувати порожній чек
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- Вкладка «Тотал» ---------------------------------------------------------
+
+function Total({ checks }: { checks: Check[] }) {
+  const days = useMemo(() => {
+    const map = new Map<string, Check[]>();
+    for (const c of checks) {
+      const key = dayKey(c.closedAt);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(c);
+    }
+    return Array.from(map.entries())
+      .map(([key, items]) => ({
+        key,
+        items,
+        sum: items.reduce((acc, c) => acc + c.total, 0),
+      }))
+      .sort((a, b) => b.key.localeCompare(a.key));
+  }, [checks]);
+
+  const todayKey = new Date().toLocaleDateString("sv-SE");
+  const todaySum = days.find((d) => d.key === todayKey)?.sum ?? 0;
+  const todayCount = days.find((d) => d.key === todayKey)?.items.length ?? 0;
+  const allSum = checks.reduce((acc, c) => acc + c.total, 0);
+
+  if (checks.length === 0) {
+    return (
+      <p className="text-muted">
+        Закритих чеків поки немає. Відкрийте чек на вкладці «Столи» — після закриття він з&apos;явиться тут.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-brass/30 bg-panel p-4">
+          <p className="text-sm text-muted">Сьогодні</p>
+          <p className="text-3xl font-extrabold text-brass tabular-nums">{fmtMoney(todaySum)}</p>
+          <p className="text-xs text-muted mt-1">{todayCount} чек(ів)</p>
+        </div>
+        <div className="rounded-xl border border-brass/20 bg-panel p-4">
+          <p className="text-sm text-muted">За весь час</p>
+          <p className="text-3xl font-extrabold tabular-nums">{fmtMoney(allSum)}</p>
+          <p className="text-xs text-muted mt-1">{checks.length} чек(ів)</p>
+        </div>
+      </div>
+
+      {days.map((day) => (
+        <div key={day.key}>
+          <div className="flex items-baseline justify-between mb-2">
+            <h2 className="text-sm font-semibold text-brass uppercase tracking-wide">
+              {fmtDayLabel(day.key)}
+            </h2>
+            <span className="text-sm font-bold tabular-nums">{fmtMoney(day.sum)}</span>
+          </div>
+          <div className="rounded-xl border border-brass/20 bg-panel divide-y divide-brass/10">
+            {day.items.map((c) => (
+              <div key={c.id} className="p-3">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-medium">
+                    Столик №{c.tableNumber ?? "—"}
+                    {c.zoneName ? ` · ${c.zoneName}` : ""}
+                  </span>
+                  <span className="font-bold tabular-nums">{fmtMoney(c.total)}</span>
+                </div>
+                <p className="text-xs text-muted mt-0.5">
+                  {fmtTime(c.openedAt)} – {fmtTime(c.closedAt)}
+                  {c.items.length > 0 && ` · ${c.items.map((i) => `${i.name}×${i.qty}`).join(", ")}`}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -437,9 +882,7 @@ function PriceList({
                     {p.name}
                   </p>
                   {p.unit && <p className="text-xs text-muted">{p.unit}</p>}
-                  {p.price === 0 && (
-                    <p className="text-xs text-brass">Ціну ще не вказано</p>
-                  )}
+                  {p.price === 0 && <p className="text-xs text-brass">Ціну ще не вказано</p>}
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -546,114 +989,6 @@ function PriceList({
         >
           {saving ? "Додаю..." : "Додати"}
         </button>
-      </div>
-    </div>
-  );
-}
-
-// --- Вкладка «Калькулятор» ---------------------------------------------------
-
-function Calculator({
-  grouped,
-  bill,
-  lines,
-  total,
-  setBill,
-}: {
-  grouped: { category: string; items: Product[] }[];
-  bill: Record<string, number>;
-  lines: { product: Product; qty: number; sum: number }[];
-  total: number;
-  setBill: React.Dispatch<React.SetStateAction<Record<string, number>>>;
-}) {
-  function add(id: string, delta: number) {
-    setBill((prev) => {
-      const next = { ...prev };
-      const qty = (next[id] || 0) + delta;
-      if (qty <= 0) delete next[id];
-      else next[id] = qty;
-      return next;
-    });
-  }
-
-  return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px] items-start">
-      <div className="space-y-5">
-        {grouped.map(({ category, items }) => {
-          const available = items.filter((p) => p.active);
-          if (available.length === 0) return null;
-          return (
-            <div key={category}>
-              <h2 className="text-sm font-semibold text-brass uppercase tracking-wide mb-2">
-                {CATEGORY_LABEL[category] || category}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {available.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => add(p.id, 1)}
-                    className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
-                      bill[p.id]
-                        ? "border-emerald bg-emerald/20"
-                        : "border-brass/20 bg-panel hover:border-brass/50"
-                    }`}
-                  >
-                    <span className="block">{p.name}</span>
-                    <span className="block text-xs text-muted">
-                      {fmtMoney(p.price)}
-                      {p.unit ? ` · ${p.unit}` : ""}
-                      {bill[p.id] ? ` · ×${bill[p.id]}` : ""}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="rounded-xl border border-brass/20 bg-panel p-4 lg:sticky lg:top-24">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold">Рахунок</h2>
-          {lines.length > 0 && (
-            <button onClick={() => setBill({})} className="text-xs text-muted hover:text-brass">
-              Очистити
-            </button>
-          )}
-        </div>
-
-        {lines.length === 0 ? (
-          <p className="text-sm text-muted">Натискайте позиції зліва, щоб зібрати рахунок.</p>
-        ) : (
-          <div className="space-y-2">
-            {lines.map(({ product, qty, sum }) => (
-              <div key={product.id} className="flex items-center gap-2 text-sm">
-                <span className="min-w-0 flex-1 truncate">{product.name}</span>
-                <span className="flex items-center gap-1">
-                  <button
-                    onClick={() => add(product.id, -1)}
-                    className="w-6 h-6 rounded-full border border-brass/30 leading-none"
-                  >
-                    −
-                  </button>
-                  <span className="w-6 text-center">{qty}</span>
-                  <button
-                    onClick={() => add(product.id, 1)}
-                    className="w-6 h-6 rounded-full border border-brass/30 leading-none"
-                  >
-                    +
-                  </button>
-                </span>
-                <span className="w-20 text-right tabular-nums">{fmtMoney(sum)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-4 pt-3 border-t border-brass/20 flex items-baseline justify-between">
-          <span className="text-sm text-muted">Разом</span>
-          <span className="text-xl font-extrabold text-brass tabular-nums">{fmtMoney(total)}</span>
-        </div>
       </div>
     </div>
   );

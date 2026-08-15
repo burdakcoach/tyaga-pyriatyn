@@ -13,6 +13,8 @@ import {
   orderItems,
   homeOrders,
   products,
+  checks,
+  checkItems,
   brandsRelations,
   flavorsRelations,
   zonesRelations,
@@ -20,6 +22,8 @@ import {
   bookingsRelations,
   pickupOrdersRelations,
   orderItemsRelations,
+  checksRelations,
+  checkItemsRelations,
 } from "@tyaga/db";
 
 export {
@@ -35,6 +39,8 @@ export {
   orderItems,
   homeOrders,
   products,
+  checks,
+  checkItems,
   brandsRelations,
   flavorsRelations,
   zonesRelations,
@@ -42,4 +48,6 @@ export {
   bookingsRelations,
   pickupOrdersRelations,
   orderItemsRelations,
+  checksRelations,
+  checkItemsRelations,
 };

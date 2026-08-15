@@ -171,6 +171,55 @@ export const orderItems = sqliteTable(
   })
 );
 
+// --- Чеки за столиками (ТІЛЬКИ для адмінки) ---------------------------------
+// Адмін відкриває чек на столик, коли гості сіли, накидає позиції та закриває
+// його, коли гості пішли. Поки чек відкритий, столик вважається зайнятим і не
+// бронюється ні з сайту, ні з бота. Закриті чеки лишаються назавжди — з них
+// рахується виторг за день у вкладці «Тотал».
+export const checks = sqliteTable(
+  "checks",
+  {
+    id: text("id").primaryKey(),
+    tableSpotId: text("table_spot_id")
+      .notNull()
+      .references(() => tableSpots.id),
+    status: text("status", { enum: ["OPEN", "CLOSED"] })
+      .notNull()
+      .default("OPEN"),
+    // Підсумок фіксується в момент закриття. Для відкритого чека рахується
+    // на льоту з позицій, тут лишається 0.
+    total: real("total").notNull().default(0),
+    guests: integer("guests"),
+    comment: text("comment"),
+    openedAt: text("opened_at").notNull().default(sql`(current_timestamp)`),
+    closedAt: text("closed_at"),
+  },
+  (t) => ({
+    statusIdx: index("checks_status_idx").on(t.status),
+    tableIdx: index("checks_table_idx").on(t.tableSpotId),
+  })
+);
+
+export const checkItems = sqliteTable(
+  "check_items",
+  {
+    id: text("id").primaryKey(),
+    checkId: text("check_id")
+      .notNull()
+      .references(() => checks.id, { onDelete: "cascade" }),
+    // Посилання на прайс лишаємо для звітів, але назву й ціну зберігаємо
+    // копією: якщо завтра ціна кальяна зміниться, вчорашній чек має лишитись
+    // таким, яким гість його оплатив.
+    productId: text("product_id").references(() => products.id),
+    name: text("name").notNull(),
+    price: real("price").notNull(),
+    qty: integer("qty").notNull().default(1),
+  },
+  (t) => ({
+    checkIdx: index("check_items_check_idx").on(t.checkId),
+  })
+);
+
 // --- Relations (for query().with() style joins) -----------------------------
 
 export const brandsRelations = relations(brands, ({ many }) => ({
@@ -197,6 +246,16 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
 
 export const pickupOrdersRelations = relations(pickupOrders, ({ many }) => ({
   items: many(orderItems),
+}));
+
+export const checksRelations = relations(checks, ({ one, many }) => ({
+  tableSpot: one(tableSpots, { fields: [checks.tableSpotId], references: [tableSpots.id] }),
+  items: many(checkItems),
+}));
+
+export const checkItemsRelations = relations(checkItems, ({ one }) => ({
+  check: one(checks, { fields: [checkItems.checkId], references: [checks.id] }),
+  product: one(products, { fields: [checkItems.productId], references: [products.id] }),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({

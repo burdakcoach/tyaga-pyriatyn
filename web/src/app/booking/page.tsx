@@ -159,17 +159,26 @@ export default function BookingPage() {
             className="object-cover brightness-[0.55]"
           />
           {activeZone.tables.map((t) => {
-            const disabled = t.isBooked || guests > t.capacity;
+            // Зайнятий зараз (відкритий чек) має пріоритет над рештою причин —
+            // саме його ми пояснюємо гостю окремим написом.
+            const occupied = Boolean(t.isOccupied);
+            const disabled = occupied || t.isBooked || guests > t.capacity;
             const isSelected = selectedTable?.id === t.id;
             return (
               <button
                 key={t.id}
                 disabled={disabled}
                 onClick={() => setSelectedTable(t)}
-                title={`Столик №${t.number} · до ${t.capacity} гостей`}
+                title={
+                  occupied
+                    ? "Тут вже димно 🙂 — столик зайнятий просто зараз"
+                    : `Столик №${t.number} · до ${t.capacity} гостей`
+                }
                 style={{ left: `${t.x}%`, top: `${t.y}%` }}
                 className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded-full w-16 h-16 sm:w-20 sm:h-20 border-2 text-xs sm:text-sm font-bold transition-all ${
-                  disabled
+                  occupied
+                    ? "bg-terracotta/40 border-terracotta/70 text-amber-glow cursor-not-allowed"
+                    : disabled
                     ? "bg-black/40 border-white/10 text-muted/60 cursor-not-allowed"
                     : isSelected
                     ? "bg-brass border-brass text-background scale-110 shadow-lg shadow-brass/40"
@@ -177,7 +186,12 @@ export default function BookingPage() {
                 }`}
               >
                 <span>№{t.number}</span>
-                <span className="opacity-80">{t.capacity} міс.</span>
+                <span className="opacity-80">{occupied ? "💨" : `${t.capacity} міс.`}</span>
+                {occupied && (
+                  <span className="absolute top-full mt-1 whitespace-nowrap rounded-full bg-background/85 border border-terracotta/50 px-2 py-0.5 text-[10px] font-medium text-amber-glow">
+                    Тут вже димно 🙂
+                  </span>
+                )}
               </button>
             );
           })}
@@ -192,7 +206,10 @@ export default function BookingPage() {
           <span className="w-3 h-3 rounded-full bg-brass border border-brass inline-block" /> обрано
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-full bg-black/40 border border-white/10 inline-block" /> зайнято / замало місць
+          <span className="w-3 h-3 rounded-full bg-black/40 border border-white/10 inline-block" /> заброньовано / замало місць
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded-full bg-terracotta/40 border border-terracotta/70 inline-block" /> тут вже димно 🙂
         </span>
       </div>
 

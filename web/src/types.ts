@@ -27,6 +27,8 @@ export type TableDTO = {
   shape: string;
   active: boolean;
   isBooked?: boolean;
+  /** На столику зараз відкритий чек — там сидять гості. */
+  isOccupied?: boolean;
 };
 
 export type ZoneDTO = {

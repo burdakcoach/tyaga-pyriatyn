@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and, ne } from "drizzle-orm";
-import { db, bookings, tableSpots, zones, cuid } from "@/lib/db";
+import { db, bookings, tableSpots, zones, checks, cuid } from "@/lib/db";
 import { notifyAdmin, escapeHtml } from "@/lib/telegram";
 
 type BookingBody = {
@@ -37,6 +37,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: `Цей столик вміщує максимум ${table.capacity} гостей` },
       { status: 400 }
+    );
+  }
+
+  // Столик із відкритим чеком не бронюється взагалі — доки адмін не натисне
+  // «Закрити чек», місце вважається зайнятим.
+  const openCheck = db
+    .select()
+    .from(checks)
+    .where(and(eq(checks.tableSpotId, tableSpotId), eq(checks.status, "OPEN")))
+    .get();
+  if (openCheck) {
+    return NextResponse.json(
+      { error: "Тут вже димно 🙂 Цей столик зараз зайнятий — оберіть, будь ласка, інший." },
+      { status: 409 }
     );
   }
 
