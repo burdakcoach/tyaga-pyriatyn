@@ -133,6 +133,47 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-16">
+        <h2 className="text-2xl font-bold mb-2 text-center">Галерея</h2>
+        <p className="text-muted text-center mb-8 max-w-xl mx-auto">
+          Як це виглядає зсередини: світло, колби і полиці з табаком.
+        </p>
+        {/* Сітка нерівна навмисне — перше фото на дві колонки, решта поспіль,
+            щоб не було відчуття каталогу. Всі знімки віддає next/image, тож
+            мобільний отримає меншу версію, а не повний файл. */}
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+          {[
+            { src: "/gallery/gallery-1.jpg", alt: "Ряд кальянів у фіолетовому підсвіченні", wide: true },
+            { src: "/gallery/gallery-2.jpg", alt: "Кальяни в червоному неоні", wide: true },
+            { src: "/gallery/gallery-3.jpg", alt: "Зелене світло на колбах" },
+            { src: "/gallery/gallery-4.jpg", alt: "Синій неон над барною стійкою" },
+            { src: "/gallery/gallery-5.jpg", alt: "Тепле бурштинове світло" },
+            { src: "/gallery/gallery-6.jpg", alt: "Дві колби у зеленому світлі" },
+            { src: "/gallery/gallery-7.jpg", alt: "Кальяни з кольоровими шлангами" },
+            { src: "/gallery/gallery-8.jpg", alt: "Кальян на тлі дерев'яної стіни" },
+            { src: "/gallery/gallery-9.jpg", alt: "Колба крупним планом" },
+            { src: "/gallery/gallery-10.jpg", alt: "Банки табаку одна на одній" },
+            { src: "/gallery/gallery-11.jpg", alt: "Забивка чаші та пачки табаку Lagom" },
+            { src: "/gallery/gallery-12.jpg", alt: "Полиця з банками табаку" },
+          ].map((photo) => (
+            <div
+              key={photo.src}
+              className={`group relative overflow-hidden rounded-xl border border-brass/20 ${
+                photo.wide ? "col-span-2 aspect-[4/3]" : "aspect-[3/4]"
+              }`}
+            >
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-20">
         <div className="rounded-2xl border border-brass/20 bg-panel p-8 text-center">
           <p className="text-muted">{WORKING_HOURS}</p>

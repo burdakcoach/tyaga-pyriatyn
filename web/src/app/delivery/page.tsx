@@ -98,6 +98,12 @@ export default function DeliveryPage() {
         <div className="relative rounded-2xl overflow-hidden border border-brass/20 h-56">
           <Image src="/delivery/delivery-3.jpg" alt="Кальяни біля шезлонгів" fill className="object-cover" />
         </div>
+        <div className="relative rounded-2xl overflow-hidden border border-brass/20 h-56">
+          <Image src="/delivery/delivery-5.jpg" alt="Готовий сетап із вугіллям перед виїздом" fill className="object-cover" />
+        </div>
+        <div className="relative rounded-2xl overflow-hidden border border-brass/20 h-56">
+          <Image src="/delivery/delivery-4.jpg" alt="Кальян їде в салоні авто до гостей" fill className="object-cover" />
+        </div>
       </div>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 grid gap-4 sm:grid-cols-2 mb-16">
