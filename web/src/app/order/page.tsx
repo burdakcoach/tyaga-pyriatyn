@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { COAL_LABEL, STRENGTH_LABEL, STRENGTH_COLOR } from "@/lib/constants";
 import type { FlavorDTO } from "@/types";
 
@@ -89,10 +90,28 @@ export default function OrderPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 py-12">
-      <h1 className="text-3xl font-extrabold mb-2">Забивка на самовивіз</h1>
-      <p className="text-muted mb-8">
-        Оберіть до {MAX_MIX} смаків для міксу, вугілля та зручний час — приготуємо до вашого приходу.
-      </p>
+      {/* Фото готової забивки як фон заголовка — гість одразу бачить, що саме
+          він забирає. Градієнт зверху темніший, щоб текст лишався читабельним. */}
+      <div className="relative overflow-hidden rounded-2xl border border-brass/20 mb-8 h-56 sm:h-72">
+        <Image
+          src="/order/takeaway.jpg"
+          alt="Готова забивка з розпаленим вугіллям"
+          fill
+          priority
+          sizes="(max-width: 896px) 100vw, 896px"
+          // object-top: смуга ширша за шапку, тож видимою має лишатись саме
+          // верхня частина — чаша з вугіллям, а не пакети під нею.
+          className="object-cover object-top"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/20" />
+        <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+          <h1 className="text-3xl font-extrabold mb-2">Забивка на самовивіз</h1>
+          <p className="text-muted max-w-xl">
+            Оберіть до {MAX_MIX} смаків для міксу, вугілля та зручний час — приготуємо до вашого
+            приходу.
+          </p>
+        </div>
+      </div>
 
       <input
         value={query}

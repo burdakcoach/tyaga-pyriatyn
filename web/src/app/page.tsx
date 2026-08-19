@@ -68,7 +68,7 @@ export default function Home() {
             title: "Забивка на самовивіз",
             text: "Зберіть свій мікс до 4 смаків, оберіть вугілля та час, коли забрати.",
             href: "/order",
-            img: "/interior/bar-corner.jpg",
+            img: "/order/takeaway.jpg",
           },
           {
             title: "Кальян додому",
