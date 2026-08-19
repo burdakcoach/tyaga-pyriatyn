@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { COAL_LABEL } from "@/lib/constants";
 import type { ZoneDTO, TableDTO } from "@/types";
+import { splitCheck } from "@/lib/split";
 
 type Booking = {
   id: string;
@@ -61,6 +62,8 @@ type CheckItem = {
   name: string;
   price: number;
   qty: number;
+  /** null — позиція спільна й ділиться порівну; число — платить цей гість. */
+  guestNo: number | null;
 };
 
 type Check = {
@@ -507,12 +510,28 @@ function Tables({
   // на інший столик кнопка сама повертається у вихідний стан — і неможливо
   // випадково натиснути «Так, закрити» на чужому чеку.
   const [confirmCloseId, setConfirmCloseId] = useState<string | null>(null);
+  // Кому приписувати нові позиції: null — у спільні, число — конкретному гостю.
+  const [activeGuestByCheck, setActiveGuestByCheck] = useState<Record<string, number | null>>({});
 
   const allTables: TableDTO[] = zones.flatMap((z) => z.tables);
   const selectedTable = allTables.find((t) => t.id === selectedTableId) || null;
   const selectedZone = zones.find((z) => z.tables.some((t) => t.id === selectedTableId));
   const activeCheck = selectedTableId ? openByTable.get(selectedTableId) || null : null;
   const confirmClose = activeCheck !== null && confirmCloseId === activeCheck.id;
+
+  const guestCount = Math.max(1, activeCheck?.guests || 1);
+  // Прив'язуємо вибір до id чека, щоб при переході на інший стіл він скидався сам.
+  const rawActiveGuest = activeCheck ? activeGuestByCheck[activeCheck.id] ?? null : null;
+  // Зменшили кількість гостей — активним лишається валідний номер.
+  const activeGuest = rawActiveGuest !== null && rawActiveGuest > guestCount ? null : rawActiveGuest;
+  const setActiveGuest = (g: number | null) => {
+    if (activeCheck) setActiveGuestByCheck((prev) => ({ ...prev, [activeCheck.id]: g }));
+  };
+
+  const split = splitCheck(
+    (activeCheck?.items || []).map((i) => ({ price: i.price, qty: i.qty, guestNo: i.guestNo })),
+    guestCount
+  );
 
   async function run(fn: () => Promise<void>) {
     setBusy(true);
@@ -598,10 +617,12 @@ function Tables({
               </button>
             </div>
           ) : (
-            <div className="grid gap-6 lg:grid-cols-[1fr_320px] items-start">
+            <div className="grid gap-6 lg:grid-cols-[1fr_400px] items-start">
               <div className="space-y-5">
                 <p className="text-sm text-muted">
-                  Натискайте позиції, щоб додати їх у рахунок.
+                  {activeGuest === null
+                    ? "Натискайте позиції — вони підуть у спільні й розділяться порівну."
+                    : `Натискайте позиції — вони підуть гостю №${activeGuest}.`}
                 </p>
                 {grouped.map(({ category, items }) => {
                   const available = items.filter((p) => p.active);
@@ -620,7 +641,11 @@ function Tables({
                               disabled={busy}
                               onClick={() =>
                                 run(() =>
-                                  onCheckAction(activeCheck.id, { action: "add", productId: p.id })
+                                  onCheckAction(activeCheck.id, {
+                                    action: "add",
+                                    productId: p.id,
+                                    guestNo: activeGuest,
+                                  })
                                 )
                               }
                               className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors disabled:opacity-50 ${
@@ -649,6 +674,60 @@ function Tables({
                   <h3 className="font-semibold">Рахунок</h3>
                   <span className="text-xs text-muted">з {fmtTime(activeCheck.openedAt)}</span>
                 </div>
+
+                {/* Скільки гостей ділять цей стіл. 1 — звичайний спільний рахунок. */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="text-sm text-muted">Гостей за столом</span>
+                  <span className="flex items-center gap-1">
+                    <button
+                      disabled={busy || guestCount <= 1}
+                      onClick={() =>
+                        run(() =>
+                          onCheckAction(activeCheck.id, {
+                            action: "setGuests",
+                            guests: guestCount - 1,
+                          })
+                        )
+                      }
+                      className="w-7 h-7 rounded-full border border-brass/30 leading-none disabled:opacity-30"
+                    >
+                      −
+                    </button>
+                    <span className="w-7 text-center font-semibold tabular-nums">{guestCount}</span>
+                    <button
+                      disabled={busy || guestCount >= 12}
+                      onClick={() =>
+                        run(() =>
+                          onCheckAction(activeCheck.id, {
+                            action: "setGuests",
+                            guests: guestCount + 1,
+                          })
+                        )
+                      }
+                      className="w-7 h-7 rounded-full border border-brass/30 leading-none disabled:opacity-30"
+                    >
+                      +
+                    </button>
+                  </span>
+                </div>
+
+                {guestCount > 1 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {[null, ...Array.from({ length: guestCount }, (_, i) => i + 1)].map((g) => (
+                      <button
+                        key={g ?? "shared"}
+                        onClick={() => setActiveGuest(g)}
+                        className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                          activeGuest === g
+                            ? "border-brass bg-brass/20 text-brass"
+                            : "border-brass/20 text-muted hover:border-brass/50"
+                        }`}
+                      >
+                        {g === null ? "Спільне" : `Гість ${g}`}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {activeCheck.items.length === 0 ? (
                   <p className="text-sm text-muted">Поки порожньо.</p>
@@ -687,9 +766,37 @@ function Tables({
                             +
                           </button>
                         </span>
-                        <span className="w-20 text-right tabular-nums">
+                        <span className="w-16 shrink-0 text-right tabular-nums">
                           {fmtMoney(i.price * i.qty)}
                         </span>
+                        {guestCount > 1 && (
+                          <select
+                            value={i.guestNo ?? ""}
+                            disabled={busy}
+                            onChange={(e) =>
+                              run(() =>
+                                onCheckAction(activeCheck.id, {
+                                  action: "assign",
+                                  itemId: i.id,
+                                  guestNo: e.target.value === "" ? null : Number(e.target.value),
+                                })
+                              )
+                            }
+                            title="Хто платить за цю позицію"
+                            className={`shrink-0 rounded-full border bg-background/60 px-1.5 py-0.5 text-[11px] ${
+                              i.guestNo
+                                ? "border-brass/50 text-brass"
+                                : "border-brass/20 text-muted"
+                            }`}
+                          >
+                            <option value="">спільне</option>
+                            {Array.from({ length: guestCount }, (_, k) => k + 1).map((g) => (
+                              <option key={g} value={g}>
+                                №{g}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -701,6 +808,39 @@ function Tables({
                     {fmtMoney(activeCheck.total)}
                   </span>
                 </div>
+
+                {guestCount > 1 && activeCheck.items.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-brass/10">
+                    <div className="flex items-baseline justify-between mb-1.5">
+                      <span className="text-xs text-muted uppercase tracking-wide">
+                        Кому скільки платити
+                      </span>
+                      <button
+                        disabled={busy}
+                        onClick={() =>
+                          run(() => onCheckAction(activeCheck.id, { action: "resetSplit" }))
+                        }
+                        className="text-xs text-muted hover:text-brass disabled:opacity-40"
+                      >
+                        Порівну
+                      </button>
+                    </div>
+                    {split.guests.map((g) => (
+                      <div key={g.guestNo} className="flex items-baseline justify-between text-sm">
+                        <span className="text-muted">
+                          Гість {g.guestNo}
+                          {g.own > 0 && (
+                            <span className="text-xs text-muted/70">
+                              {" "}
+                              ({fmtMoney(g.own)} своє + {fmtMoney(g.shared)} спільні)
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-semibold tabular-nums">{fmtMoney(g.total)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {activeCheck.items.length > 0 ? (
                   confirmClose ? (
@@ -831,6 +971,20 @@ function Total({ checks }: { checks: Check[] }) {
                   {fmtTime(c.openedAt)} – {fmtTime(c.closedAt)}
                   {c.items.length > 0 && ` · ${c.items.map((i) => `${i.name}×${i.qty}`).join(", ")}`}
                 </p>
+                {/* Чек ділили між гостями — показуємо, хто скільки заплатив.
+                    Ціни в позиціях збережені знімком, тож розподіл відтворюється
+                    точно таким, яким був у момент закриття. */}
+                {(c.guests || 1) > 1 && (
+                  <p className="text-xs text-brass/80 mt-0.5">
+                    Розділено на {c.guests}:{" "}
+                    {splitCheck(
+                      c.items.map((i) => ({ price: i.price, qty: i.qty, guestNo: i.guestNo })),
+                      c.guests || 1
+                    )
+                      .guests.map((g) => fmtMoney(g.total))
+                      .join(" · ")}
+                  </p>
+                )}
               </div>
             ))}
           </div>

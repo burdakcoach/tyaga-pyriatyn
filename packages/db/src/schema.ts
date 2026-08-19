@@ -214,6 +214,11 @@ export const checkItems = sqliteTable(
     name: text("name").notNull(),
     price: real("price").notNull(),
     qty: integer("qty").notNull().default(1),
+    // Розділення рахунку між гостями за одним столом.
+    // null — позиція спільна, її вартість ділиться порівну між усіма гостями.
+    // 1, 2, 3... — персональна позиція конкретного гостя, платить тільки він.
+    // Якщо всі позиції лишити спільними, вийде звичайне ділення порівну.
+    guestNo: integer("guest_no"),
   },
   (t) => ({
     checkIdx: index("check_items_check_idx").on(t.checkId),

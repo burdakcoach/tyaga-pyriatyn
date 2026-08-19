@@ -13,6 +13,7 @@ type ItemRow = {
   name: string;
   price: number;
   qty: number;
+  guestNo: number | null;
 };
 
 function sumItems(items: ItemRow[]) {
@@ -120,13 +121,22 @@ export async function PATCH(request: NextRequest) {
     if (!product) {
       return NextResponse.json({ error: "Позицію не знайдено в прайсі" }, { status: 404 });
     }
-    // Якщо така сама позиція вже в чеку — просто збільшуємо кількість,
-    // щоб рахунок не перетворювався на довгий список однакових рядків.
+    // Гість, якому одразу приписати позицію (null — спільна).
+    const targetGuest =
+      body.guestNo === null || body.guestNo === undefined || body.guestNo === ""
+        ? null
+        : Math.max(1, Math.floor(Number(body.guestNo)));
+
+    // Якщо така сама позиція вже в чеку — просто збільшуємо кількість, щоб
+    // рахунок не перетворювався на довгий список однакових рядків. Але
+    // згортаємо ЛИШЕ рядки з тим самим власником: інакше друга кола, замовлена
+    // іншим гостем, приліпилась би до чужого рядка і поїхав би розподіл.
     const existing = db
       .select()
       .from(checkItems)
       .where(and(eq(checkItems.checkId, checkId), eq(checkItems.productId, product.id)))
-      .get();
+      .all()
+      .find((i) => (i.guestNo ?? null) === targetGuest);
     if (existing) {
       db.update(checkItems)
         .set({ qty: existing.qty + 1 })
@@ -141,6 +151,7 @@ export async function PATCH(request: NextRequest) {
           name: product.unit ? `${product.name} (${product.unit})` : product.name,
           price: product.price,
           qty: 1,
+          guestNo: targetGuest,
         })
         .run();
     }
@@ -178,11 +189,46 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (action === "setGuests") {
-    const guests = Number(body?.guests);
-    db.update(checks)
-      .set({ guests: Number.isFinite(guests) && guests > 0 ? guests : null })
-      .where(eq(checks.id, checkId))
-      .run();
+    const raw = Number(body?.guests);
+    const guests = Number.isFinite(raw) && raw > 0 ? Math.min(Math.floor(raw), 12) : null;
+    db.update(checks).set({ guests }).where(eq(checks.id, checkId)).run();
+
+    // Зменшили кількість гостей — позиції, приписані тим, кого вже немає,
+    // повертаємо у спільні. Інакше в рахунку висіли б рядки «гостя №5»,
+    // якого в списку не існує.
+    if (guests) {
+      const orphans = db
+        .select()
+        .from(checkItems)
+        .where(eq(checkItems.checkId, checkId))
+        .all()
+        .filter((i) => i.guestNo !== null && i.guestNo > guests);
+      for (const item of orphans) {
+        db.update(checkItems).set({ guestNo: null }).where(eq(checkItems.id, item.id)).run();
+      }
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  // Приписати рядок гостю або повернути його у спільні (guestNo = null).
+  if (action === "assign") {
+    const item = db.select().from(checkItems).where(eq(checkItems.id, body.itemId)).get();
+    if (!item || item.checkId !== checkId) {
+      return NextResponse.json({ error: "Рядок не знайдено" }, { status: 404 });
+    }
+    const raw = body.guestNo;
+    const guestNo =
+      raw === null || raw === undefined || raw === "" ? null : Math.max(1, Math.floor(Number(raw)));
+    if (guestNo !== null && !Number.isFinite(guestNo)) {
+      return NextResponse.json({ error: "Невірний номер гостя" }, { status: 400 });
+    }
+    db.update(checkItems).set({ guestNo }).where(eq(checkItems.id, item.id)).run();
+    return NextResponse.json({ ok: true });
+  }
+
+  // Скинути весь розподіл — усі позиції знову спільні (тобто рівними частинами).
+  if (action === "resetSplit") {
+    db.update(checkItems).set({ guestNo: null }).where(eq(checkItems.checkId, checkId)).run();
     return NextResponse.json({ ok: true });
   }
 
