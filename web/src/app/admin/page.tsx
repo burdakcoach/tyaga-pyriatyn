@@ -77,6 +77,12 @@ type Check = {
   items: CheckItem[];
 };
 
+type Stats = {
+  today: number;
+  month: number;
+  monthVisits: number;
+};
+
 const TABS = [
   { key: "tables", label: "Столи" },
   { key: "bookings", label: "Бронювання" },
@@ -158,6 +164,7 @@ export default function AdminPage() {
   const [zones, setZones] = useState<ZoneDTO[]>([]);
   const [openChecks, setOpenChecks] = useState<Check[]>([]);
   const [closedChecks, setClosedChecks] = useState<Check[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
 
@@ -180,13 +187,15 @@ export default function AdminPage() {
       fetch("/api/admin/orders").then((r) => r.json()),
       fetch("/api/admin/home-orders").then((r) => r.json()),
       fetch("/api/admin/products").then((r) => r.json()),
+      fetch("/api/admin/stats").then((r) => r.json()),
       loadChecks(),
     ])
-      .then(([b, o, h, p]) => {
+      .then(([b, o, h, p, s]) => {
         setBookings(b.bookings || []);
         setOrders(o.orders || []);
         setHomeOrders(h.homeOrders || []);
         setProducts(p.products || []);
+        setStats(s || null);
       })
       .finally(() => setLoading(false));
   }, [loadChecks]);
@@ -308,6 +317,23 @@ export default function AdminPage() {
         >
           🔄 Оновити
         </button>
+      </div>
+
+      {/* Відвідуваність сайту — видно з будь-якої вкладки. */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="rounded-xl border border-brass/20 bg-panel px-4 py-3">
+          <p className="text-xs text-muted uppercase tracking-wide">Відвідувачів сьогодні</p>
+          <p className="text-2xl font-extrabold text-brass tabular-nums">
+            {stats ? stats.today : "—"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-brass/20 bg-panel px-4 py-3">
+          <p className="text-xs text-muted uppercase tracking-wide">Відвідувачів за місяць</p>
+          <p className="text-2xl font-extrabold tabular-nums">{stats ? stats.month : "—"}</p>
+          {stats && stats.monthVisits > stats.month && (
+            <p className="text-xs text-muted mt-0.5">{stats.monthVisits} візитів разом</p>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-thin">

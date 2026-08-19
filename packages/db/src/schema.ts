@@ -220,6 +220,33 @@ export const checkItems = sqliteTable(
   })
 );
 
+// --- Лічильник відвідувань сайту --------------------------------------------
+// Один рядок = один відвідувач за один день. IP ніде не зберігається: з нього
+// разом із датою й секретною сіллю рахується необоротний хеш, тож відстежити
+// конкретну людину або зв'язати її візити між днями неможливо. Нам потрібне
+// лише число «скільки людей зайшло», і саме воно тут і лежить.
+export const siteVisits = sqliteTable(
+  "site_visits",
+  {
+    id: text("id").primaryKey(),
+    day: text("day").notNull(), // YYYY-MM-DD за київським часом
+    // Хеш із датою всередині — унікальний у межах доби.
+    visitorHash: text("visitor_hash").notNull(),
+    // Хеш із місяцем замість дати. Потрібен, щоб порахувати саме людей за
+    // місяць: постійний гість, який заходить щодня, має рахуватись один раз.
+    // Оновлюється на початку кожного місяця, тож довгого сліду не лишає.
+    monthHash: text("month_hash").notNull().default(""),
+    firstPath: text("first_path"),
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => ({
+    dayIdx: index("site_visits_day_idx").on(t.day),
+    monthHashIdx: index("site_visits_month_hash_idx").on(t.monthHash),
+    // Ключ від подвійного рахунку: та сама людина того самого дня — один рядок.
+    dayVisitorIdx: uniqueIndex("site_visits_day_visitor_idx").on(t.day, t.visitorHash),
+  })
+);
+
 // --- Relations (for query().with() style joins) -----------------------------
 
 export const brandsRelations = relations(brands, ({ many }) => ({
