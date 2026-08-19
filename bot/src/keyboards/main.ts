@@ -10,6 +10,9 @@ export function mainMenuKeyboard() {
     WEBAPP_URL
       ? [Markup.button.webApp("📦 Забивка на самовивіз", `${WEBAPP_URL}/order`)]
       : [Markup.button.callback("📦 Забивка на самовивіз", "order:start")],
+    // Сайт відкриваємо як Mini App — гість лишається в Telegram і бачить
+    // головну з галереєю, каталогом і всіма розділами.
+    ...(WEBAPP_URL ? [[Markup.button.webApp("🌐 Перейти на сайт", WEBAPP_URL)]] : []),
     [Markup.button.callback("ℹ️ Про заклад", "info")],
   ];
   return Markup.inlineKeyboard(rows);
