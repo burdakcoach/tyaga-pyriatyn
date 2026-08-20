@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { COAL_LABEL } from "@/lib/constants";
 import type { ZoneDTO, TableDTO } from "@/types";
-import { splitCheck } from "@/lib/split";
+import { splitCheck, changeDue, cashSuggestions } from "@/lib/split";
 
 type Booking = {
   id: string;
@@ -71,6 +71,12 @@ type Check = {
   tableSpotId: string;
   status: "OPEN" | "CLOSED";
   total: number;
+  /** Сума до знижок. */
+  subtotal: number;
+  /** Знижка на весь стіл, відсоток. */
+  discountPercent: number;
+  /** Персональні знижки: { [номер гостя]: відсоток }. */
+  guestDiscounts: Record<number, number>;
   guests: number | null;
   comment: string | null;
   openedAt: string;
@@ -120,6 +126,9 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 const CATEGORY_ORDER = ["SERVICE", "DRINK", "BEER", "SNACK", "OTHER"];
+
+// Знижки, які реально дає заклад.
+const DISCOUNTS = [15, 25, 50] as const;
 
 function fmtDate(iso: string) {
   return iso;
@@ -530,8 +539,23 @@ function Tables({
 
   const split = splitCheck(
     (activeCheck?.items || []).map((i) => ({ price: i.price, qty: i.qty, guestNo: i.guestNo })),
-    guestCount
+    guestCount,
+    {
+      tableDiscount: activeCheck?.discountPercent || 0,
+      guestDiscounts: activeCheck?.guestDiscounts || {},
+    }
   );
+
+  // Готівка: кого розраховуємо (null — весь стіл) і скільки дав гість.
+  const [payTarget, setPayTarget] = useState<number | null>(null);
+  const [cashGiven, setCashGiven] = useState<string>("");
+  const payTargetValid = payTarget !== null && payTarget <= guestCount ? payTarget : null;
+  const amountDue =
+    payTargetValid === null
+      ? split.total
+      : split.guests[payTargetValid - 1]?.total ?? 0;
+  const given = cashGiven === "" ? null : Number(cashGiven.replace(",", "."));
+  const change = given === null || !Number.isFinite(given) ? null : changeDue(given, amountDue);
 
   async function run(fn: () => Promise<void>) {
     setBusy(true);
@@ -711,6 +735,38 @@ function Tables({
                   </span>
                 </div>
 
+                {/* Знижка на весь стіл. Персональна знижка гостя її перекриє. */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="text-sm text-muted">Знижка на стіл</span>
+                  <span className="flex gap-1">
+                    {DISCOUNTS.map((d) => {
+                      const on = (activeCheck.discountPercent || 0) === d;
+                      return (
+                        <button
+                          key={d}
+                          disabled={busy}
+                          onClick={() =>
+                            run(() =>
+                              onCheckAction(activeCheck.id, {
+                                action: "setDiscount",
+                                // Повторне натискання активної кнопки знімає знижку.
+                                percent: on ? 0 : d,
+                              })
+                            )
+                          }
+                          className={`rounded-full border px-2 py-1 text-xs transition-colors disabled:opacity-40 ${
+                            on
+                              ? "border-terracotta bg-terracotta/25 text-amber-glow"
+                              : "border-brass/25 text-muted hover:border-brass/60"
+                          }`}
+                        >
+                          {d}%
+                        </button>
+                      );
+                    })}
+                  </span>
+                </div>
+
                 {guestCount > 1 && (
                   <div className="flex flex-wrap gap-1 mb-3">
                     {[null, ...Array.from({ length: guestCount }, (_, i) => i + 1)].map((g) => (
@@ -726,6 +782,40 @@ function Tables({
                         {g === null ? "Спільне" : `Гість ${g}`}
                       </button>
                     ))}
+                  </div>
+                )}
+
+                {/* Персональна знижка — тільки коли обрано конкретного гостя. */}
+                {guestCount > 1 && activeGuest !== null && (
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span className="text-sm text-muted">Знижка гостю {activeGuest}</span>
+                    <span className="flex gap-1">
+                      {DISCOUNTS.map((d) => {
+                        const on = (activeCheck.guestDiscounts?.[activeGuest] || 0) === d;
+                        return (
+                          <button
+                            key={d}
+                            disabled={busy}
+                            onClick={() =>
+                              run(() =>
+                                onCheckAction(activeCheck.id, {
+                                  action: "setGuestDiscount",
+                                  guestNo: activeGuest,
+                                  percent: on ? 0 : d,
+                                })
+                              )
+                            }
+                            className={`rounded-full border px-2 py-1 text-xs transition-colors disabled:opacity-40 ${
+                              on
+                                ? "border-terracotta bg-terracotta/25 text-amber-glow"
+                                : "border-brass/25 text-muted hover:border-brass/60"
+                            }`}
+                          >
+                            {d}%
+                          </button>
+                        );
+                      })}
+                    </span>
                   </div>
                 )}
 
@@ -802,11 +892,25 @@ function Tables({
                   </div>
                 )}
 
-                <div className="mt-4 pt-3 border-t border-brass/20 flex items-baseline justify-between">
-                  <span className="text-sm text-muted">Разом</span>
-                  <span className="text-xl font-extrabold text-brass tabular-nums">
-                    {fmtMoney(activeCheck.total)}
-                  </span>
+                <div className="mt-4 pt-3 border-t border-brass/20">
+                  {split.discount > 0 && (
+                    <>
+                      <div className="flex items-baseline justify-between text-sm text-muted">
+                        <span>Сума</span>
+                        <span className="tabular-nums line-through">{fmtMoney(split.subtotal)}</span>
+                      </div>
+                      <div className="flex items-baseline justify-between text-sm text-amber-glow">
+                        <span>Знижка</span>
+                        <span className="tabular-nums">−{fmtMoney(split.discount)}</span>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex items-baseline justify-between mt-1">
+                    <span className="text-sm text-muted">До сплати</span>
+                    <span className="text-xl font-extrabold text-brass tabular-nums">
+                      {fmtMoney(split.total)}
+                    </span>
+                  </div>
                 </div>
 
                 {guestCount > 1 && activeCheck.items.length > 0 && (
@@ -829,6 +933,9 @@ function Tables({
                       <div key={g.guestNo} className="flex items-baseline justify-between text-sm">
                         <span className="text-muted">
                           Гість {g.guestNo}
+                          {g.discountPercent > 0 && (
+                            <span className="text-xs text-amber-glow"> −{g.discountPercent}%</span>
+                          )}
                           {g.own > 0 && (
                             <span className="text-xs text-muted/70">
                               {" "}
@@ -842,11 +949,99 @@ function Tables({
                   </div>
                 )}
 
+                {/* Готівка: скільки дав гість і скільки видати решти. */}
+                {activeCheck.items.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-brass/10">
+                    <p className="text-xs text-muted uppercase tracking-wide mb-2">Розрахунок готівкою</p>
+
+                    {guestCount > 1 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {[null, ...Array.from({ length: guestCount }, (_, i) => i + 1)].map((g) => (
+                          <button
+                            key={g ?? "all"}
+                            onClick={() => {
+                              setPayTarget(g);
+                              setCashGiven("");
+                            }}
+                            className={`rounded-full border px-2 py-0.5 text-[11px] transition-colors ${
+                              payTargetValid === g
+                                ? "border-brass bg-brass/20 text-brass"
+                                : "border-brass/20 text-muted hover:border-brass/50"
+                            }`}
+                          >
+                            {g === null ? "Весь стіл" : `Гість ${g}`}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-baseline justify-between text-sm mb-2">
+                      <span className="text-muted">
+                        {payTargetValid === null ? "До сплати" : `Гість ${payTargetValid} платить`}
+                      </span>
+                      <span className="font-semibold tabular-nums">{fmtMoney(amountDue)}</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {cashSuggestions(amountDue).map((v) => (
+                        <button
+                          key={v}
+                          onClick={() => setCashGiven(String(v))}
+                          className={`rounded-lg border px-2 py-1 text-xs tabular-nums transition-colors ${
+                            given === v
+                              ? "border-emerald bg-emerald/20"
+                              : "border-brass/20 text-muted hover:border-brass/50"
+                          }`}
+                        >
+                          {v === amountDue ? "Без решти" : `${v} ₴`}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        value={cashGiven}
+                        onChange={(e) => setCashGiven(e.target.value)}
+                        placeholder="Гість дав, ₴"
+                        className="w-full rounded-lg border border-brass/30 bg-background/60 px-2 py-1.5 text-sm text-right"
+                      />
+                      {cashGiven !== "" && (
+                        <button
+                          onClick={() => setCashGiven("")}
+                          className="shrink-0 text-xs text-muted hover:text-brass"
+                        >
+                          Скинути
+                        </button>
+                      )}
+                    </div>
+
+                    {change !== null && (
+                      <div
+                        className={`mt-2 rounded-lg border px-3 py-2 flex items-baseline justify-between ${
+                          change < 0
+                            ? "border-terracotta/60 bg-terracotta/15"
+                            : "border-emerald/50 bg-emerald/15"
+                        }`}
+                      >
+                        <span className="text-sm">
+                          {change < 0 ? "Не вистачає" : "Решта"}
+                        </span>
+                        <span className="text-lg font-extrabold tabular-nums">
+                          {fmtMoney(Math.abs(change))}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {activeCheck.items.length > 0 ? (
                   confirmClose ? (
                     <div className="mt-4 space-y-2">
                       <p className="text-sm text-muted">
-                        Закрити чек на {fmtMoney(activeCheck.total)}? Столик знову стане вільним.
+                        Закрити чек на {fmtMoney(split.total)}? Столик знову стане вільним.
                       </p>
                       <div className="flex gap-2">
                         <button
@@ -979,10 +1174,21 @@ function Total({ checks }: { checks: Check[] }) {
                     Розділено на {c.guests}:{" "}
                     {splitCheck(
                       c.items.map((i) => ({ price: i.price, qty: i.qty, guestNo: i.guestNo })),
-                      c.guests || 1
+                      c.guests || 1,
+                      // Знижки обов'язково передаємо: без них розбивка показала б
+                      // суми до знижки, і вони не сходились би з підсумком чека.
+                      {
+                        tableDiscount: c.discountPercent,
+                        guestDiscounts: c.guestDiscounts || {},
+                      }
                     )
                       .guests.map((g) => fmtMoney(g.total))
                       .join(" · ")}
+                  </p>
+                )}
+                {c.subtotal > c.total && (
+                  <p className="text-xs text-amber-glow/80 mt-0.5">
+                    Знижка −{fmtMoney(c.subtotal - c.total)} (з {fmtMoney(c.subtotal)})
                   </p>
                 )}
               </div>

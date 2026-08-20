@@ -15,6 +15,7 @@ import {
   products,
   checks,
   checkItems,
+  checkGuests,
   siteVisits,
   brandsRelations,
   flavorsRelations,
@@ -25,6 +26,7 @@ import {
   orderItemsRelations,
   checksRelations,
   checkItemsRelations,
+  checkGuestsRelations,
 } from "@tyaga/db";
 
 export {
@@ -42,6 +44,7 @@ export {
   products,
   checks,
   checkItems,
+  checkGuests,
   siteVisits,
   brandsRelations,
   flavorsRelations,
@@ -52,4 +55,5 @@ export {
   orderItemsRelations,
   checksRelations,
   checkItemsRelations,
+  checkGuestsRelations,
 };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { db, checks, checkItems, products, tableSpots, zones, cuid } from "@/lib/db";
+import { db, checks, checkItems, checkGuests, products, tableSpots, zones, cuid } from "@/lib/db";
+import { splitCheck } from "@/lib/split";
 
 // Чеки за столиками. Роут під /api/admin/*, отже за Basic Auth (middleware.ts).
 // Гості цих даних не бачать — публічні роути дізнаються лише сам факт
@@ -15,10 +16,6 @@ type ItemRow = {
   qty: number;
   guestNo: number | null;
 };
-
-function sumItems(items: ItemRow[]) {
-  return Math.round(items.reduce((acc, i) => acc + i.price * i.qty, 0) * 100) / 100;
-}
 
 export async function GET() {
   const checkRows = db.select().from(checks).all();
@@ -35,16 +32,30 @@ export async function GET() {
     itemsByCheck.get(it.checkId)!.push(it);
   }
 
+  const guestRows = db.select().from(checkGuests).all();
+  const discountsByCheck = new Map<string, Record<number, number>>();
+  for (const g of guestRows) {
+    if (!discountsByCheck.has(g.checkId)) discountsByCheck.set(g.checkId, {});
+    discountsByCheck.get(g.checkId)![g.guestNo] = g.discountPercent;
+  }
+
   const decorated = checkRows.map((c) => {
     const items = itemsByCheck.get(c.id) || [];
     const table = tableById.get(c.tableSpotId);
     const zone = table ? zoneById.get(table.zoneId) : undefined;
+    const guestDiscounts = discountsByCheck.get(c.id) || {};
+    const live = splitCheck(items, c.guests || 1, {
+      tableDiscount: c.discountPercent,
+      guestDiscounts,
+    });
     return {
       ...c,
       // Для відкритого чека сума жива, для закритого — та, що зафіксована.
-      total: c.status === "OPEN" ? sumItems(items) : c.total,
+      total: c.status === "OPEN" ? live.total : c.total,
+      subtotal: c.status === "OPEN" ? live.subtotal : c.subtotal,
       tableNumber: table?.number ?? null,
       zoneName: zone?.name ?? null,
+      guestDiscounts,
       items,
     };
   });
@@ -176,10 +187,20 @@ export async function PATCH(request: NextRequest) {
 
   if (action === "close") {
     const items = db.select().from(checkItems).where(eq(checkItems.checkId, checkId)).all() as ItemRow[];
+    // Фіксуємо підсумок уже зі знижками — саме ця сума потрапить у «Тотал».
+    const guestDiscounts: Record<number, number> = {};
+    for (const g of db.select().from(checkGuests).where(eq(checkGuests.checkId, checkId)).all()) {
+      guestDiscounts[g.guestNo] = g.discountPercent;
+    }
+    const final = splitCheck(items, check.guests || 1, {
+      tableDiscount: check.discountPercent,
+      guestDiscounts,
+    });
     db.update(checks)
       .set({
         status: "CLOSED",
-        total: sumItems(items),
+        total: final.total,
+        subtotal: final.subtotal,
         closedAt: new Date().toISOString(),
         comment: typeof body?.comment === "string" ? body.comment.trim() || null : check.comment,
       })
@@ -206,6 +227,12 @@ export async function PATCH(request: NextRequest) {
       for (const item of orphans) {
         db.update(checkItems).set({ guestNo: null }).where(eq(checkItems.id, item.id)).run();
       }
+      // Заодно прибираємо персональні знижки гостей, яких уже немає.
+      for (const g of db.select().from(checkGuests).where(eq(checkGuests.checkId, checkId)).all()) {
+        if (g.guestNo > guests) {
+          db.delete(checkGuests).where(eq(checkGuests.id, g.id)).run();
+        }
+      }
     }
     return NextResponse.json({ ok: true });
   }
@@ -223,6 +250,42 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Невірний номер гостя" }, { status: 400 });
     }
     db.update(checkItems).set({ guestNo }).where(eq(checkItems.id, item.id)).run();
+    return NextResponse.json({ ok: true });
+  }
+
+  // Знижка на весь стіл.
+  if (action === "setDiscount") {
+    const percent = Math.min(100, Math.max(0, Number(body.percent) || 0));
+    db.update(checks).set({ discountPercent: percent }).where(eq(checks.id, checkId)).run();
+    return NextResponse.json({ ok: true });
+  }
+
+  // Персональна знижка гостя. 0 — прибрати, тоді для нього знову діє столова.
+  if (action === "setGuestDiscount") {
+    const guestNo = Math.max(1, Math.floor(Number(body.guestNo)));
+    if (!Number.isFinite(guestNo)) {
+      return NextResponse.json({ error: "Невірний номер гостя" }, { status: 400 });
+    }
+    const percent = Math.min(100, Math.max(0, Number(body.percent) || 0));
+    const existing = db
+      .select()
+      .from(checkGuests)
+      .where(and(eq(checkGuests.checkId, checkId), eq(checkGuests.guestNo, guestNo)))
+      .get();
+
+    if (percent === 0) {
+      // Нульова знижка — просто прибираємо рядок, щоб не тримати сміття.
+      if (existing) db.delete(checkGuests).where(eq(checkGuests.id, existing.id)).run();
+    } else if (existing) {
+      db.update(checkGuests)
+        .set({ discountPercent: percent })
+        .where(eq(checkGuests.id, existing.id))
+        .run();
+    } else {
+      db.insert(checkGuests)
+        .values({ id: cuid("cguest"), checkId, guestNo, discountPercent: percent })
+        .run();
+    }
     return NextResponse.json({ ok: true });
   }
 
@@ -250,6 +313,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Закритий чек видалити не можна" }, { status: 409 });
   }
   db.delete(checkItems).where(eq(checkItems.checkId, id)).run();
+  db.delete(checkGuests).where(eq(checkGuests.checkId, id)).run();
   db.delete(checks).where(eq(checks.id, id)).run();
   return NextResponse.json({ ok: true });
 }

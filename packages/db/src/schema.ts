@@ -189,7 +189,11 @@ export const checks = sqliteTable(
     // Підсумок фіксується в момент закриття. Для відкритого чека рахується
     // на льоту з позицій, тут лишається 0.
     total: real("total").notNull().default(0),
+    // Скільки коштував чек до знижок — щоб у звітах було видно, скільки роздано.
+    subtotal: real("subtotal").notNull().default(0),
     guests: integer("guests"),
+    // Знижка на весь стіл, відсоток. Персональна знижка гостя її перекриває.
+    discountPercent: real("discount_percent").notNull().default(0),
     comment: text("comment"),
     openedAt: text("opened_at").notNull().default(sql`(current_timestamp)`),
     closedAt: text("closed_at"),
@@ -222,6 +226,25 @@ export const checkItems = sqliteTable(
   },
   (t) => ({
     checkIdx: index("check_items_check_idx").on(t.checkId),
+  })
+);
+
+// Персональні знижки гостей у межах одного чека. Рядок з'являється лише тоді,
+// коли комусь справді поставили окрему знижку — у звичайному чеку таблиця
+// лишається порожньою.
+export const checkGuests = sqliteTable(
+  "check_guests",
+  {
+    id: text("id").primaryKey(),
+    checkId: text("check_id")
+      .notNull()
+      .references(() => checks.id, { onDelete: "cascade" }),
+    guestNo: integer("guest_no").notNull(),
+    discountPercent: real("discount_percent").notNull().default(0),
+  },
+  (t) => ({
+    checkIdx: index("check_guests_check_idx").on(t.checkId),
+    uniqueGuest: uniqueIndex("check_guests_check_guest_idx").on(t.checkId, t.guestNo),
   })
 );
 
@@ -283,6 +306,11 @@ export const pickupOrdersRelations = relations(pickupOrders, ({ many }) => ({
 export const checksRelations = relations(checks, ({ one, many }) => ({
   tableSpot: one(tableSpots, { fields: [checks.tableSpotId], references: [tableSpots.id] }),
   items: many(checkItems),
+  guestRows: many(checkGuests),
+}));
+
+export const checkGuestsRelations = relations(checkGuests, ({ one }) => ({
+  check: one(checks, { fields: [checkGuests.checkId], references: [checks.id] }),
 }));
 
 export const checkItemsRelations = relations(checkItems, ({ one }) => ({
