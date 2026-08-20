@@ -178,7 +178,7 @@ export default function AdminPage() {
   const [closedChecks, setClosedChecks] = useState<Check[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [errors, setErrors] = useState<string[]>([]);
+  const [errors, setErrors] = useState<{ label: string; message: string }[]>([]);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
 
   // Кожен запит тягнемо незалежно. Раніше тут був спільний Promise.all, і
@@ -187,10 +187,21 @@ export default function AdminPage() {
   const fetchJson = useCallback(async (url: string, label: string) => {
     try {
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`${res.status}`);
+      if (!res.ok) {
+        // Роути віддають текст помилки в полі error — показуємо його як є,
+        // щоб не гадати про причину по коду 500.
+        const detail = await res
+          .json()
+          .then((d) => d?.error as string | undefined)
+          .catch(() => undefined);
+        throw new Error(detail || `помилка ${res.status}`);
+      }
       return await res.json();
     } catch (e) {
-      setErrors((prev) => (prev.includes(label) ? prev : [...prev, label]));
+      const message = e instanceof Error ? e.message : String(e);
+      setErrors((prev) =>
+        prev.some((x) => x.label === label) ? prev : [...prev, { label, message }]
+      );
       console.error(`Не вдалося завантажити ${url}`, e);
       return null;
     }
@@ -351,11 +362,16 @@ export default function AdminPage() {
       {errors.length > 0 && (
         <div className="mb-6 rounded-xl border border-terracotta/60 bg-terracotta/15 px-4 py-3">
           <p className="text-sm font-semibold text-amber-glow">
-            Не завантажилось: {errors.join(", ")}
+            Не завантажилось: {errors.map((e) => e.label).join(", ")}
           </p>
-          <p className="text-xs text-muted mt-1">
-            Решта панелі працює. Найчастіша причина — база ще не оновилась після
-            деплою: у Railway перезапустіть сервіс, щоб пройшла міграція.
+          {errors.map((e) => (
+            <p key={e.label} className="text-xs text-muted mt-1 font-mono break-all">
+              {e.label}: {e.message}
+            </p>
+          ))}
+          <p className="text-xs text-muted mt-2">
+            Решта панелі працює. Якщо в тексті згадується колонка або таблиця —
+            база не встигла оновитись: у Railway перезапустіть сервіс.
           </p>
         </div>
       )}

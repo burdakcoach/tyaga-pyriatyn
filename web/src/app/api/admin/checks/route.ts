@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db, checks, checkItems, checkGuests, products, tableSpots, zones, cuid } from "@/lib/db";
 import { splitCheck } from "@/lib/split";
+import { guarded } from "@/lib/api";
 
 // Чеки за столиками. Роут під /api/admin/*, отже за Basic Auth (middleware.ts).
 // Гості цих даних не бачать — публічні роути дізнаються лише сам факт
@@ -18,6 +19,7 @@ type ItemRow = {
 };
 
 export async function GET() {
+  return guarded("чеки", () => {
   const checkRows = db.select().from(checks).all();
   const itemRows = db.select().from(checkItems).all() as ItemRow[];
   const tableRows = db.select().from(tableSpots).all();
@@ -68,7 +70,8 @@ export async function GET() {
     .filter((c) => c.status === "CLOSED")
     .sort((a, b) => (b.closedAt || "").localeCompare(a.closedAt || ""));
 
-  return NextResponse.json({ open, closed });
+  return { open, closed };
+  });
 }
 
 // Відкрити чек на столик.

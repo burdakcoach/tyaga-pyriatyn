@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asc, eq } from "drizzle-orm";
 import { db, products, cuid } from "@/lib/db";
+import { guarded } from "@/lib/api";
 
 // Прайс-лист. Роут живе під /api/admin/*, тому middleware.ts вимагає Basic Auth —
 // ціни ніколи не віддаються анонімним відвідувачам сайту.
@@ -16,12 +17,14 @@ function parsePrice(value: unknown): number | null {
 }
 
 export async function GET() {
+  return guarded("прайс", () => {
   const rows = db
     .select()
     .from(products)
     .orderBy(asc(products.sortOrder), asc(products.name))
     .all();
-  return NextResponse.json({ products: rows });
+  return { products: rows };
+  });
 }
 
 export async function POST(request: NextRequest) {
