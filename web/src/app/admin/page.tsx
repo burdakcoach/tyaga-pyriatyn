@@ -178,39 +178,56 @@ export default function AdminPage() {
   const [closedChecks, setClosedChecks] = useState<Check[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState<string[]>([]);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
 
-  // Столи й чеки оновлюються найчастіше, тому винесені в окрему функцію —
-  // після кожного натискання позиції не тягнемо весь дашборд заново.
+  // Кожен запит тягнемо незалежно. Раніше тут був спільний Promise.all, і
+  // варто було одному роуту впасти — вся панель лишалась порожньою без жодного
+  // натяку на причину: порожні вкладки і прочерки замість чисел.
+  const fetchJson = useCallback(async (url: string, label: string) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`${res.status}`);
+      return await res.json();
+    } catch (e) {
+      setErrors((prev) => (prev.includes(label) ? prev : [...prev, label]));
+      console.error(`Не вдалося завантажити ${url}`, e);
+      return null;
+    }
+  }, []);
+
   const loadChecks = useCallback(async () => {
     const [c, z] = await Promise.all([
-      fetch("/api/admin/checks").then((r) => r.json()),
-      fetch("/api/zones").then((r) => r.json()),
+      fetchJson("/api/admin/checks", "чеки"),
+      fetchJson("/api/zones", "столики"),
     ]);
-    setOpenChecks(c.open || []);
-    setClosedChecks(c.closed || []);
-    setZones(z.zones || []);
-  }, []);
+    if (c) {
+      setOpenChecks(c.open || []);
+      setClosedChecks(c.closed || []);
+    }
+    if (z) setZones(z.zones || []);
+  }, [fetchJson]);
 
   const load = useCallback(() => {
     setLoading(true);
+    setErrors([]);
     Promise.all([
-      fetch("/api/admin/bookings").then((r) => r.json()),
-      fetch("/api/admin/orders").then((r) => r.json()),
-      fetch("/api/admin/home-orders").then((r) => r.json()),
-      fetch("/api/admin/products").then((r) => r.json()),
-      fetch("/api/admin/stats").then((r) => r.json()),
+      fetchJson("/api/admin/bookings", "бронювання"),
+      fetchJson("/api/admin/orders", "забивки"),
+      fetchJson("/api/admin/home-orders", "кальян додому"),
+      fetchJson("/api/admin/products", "прайс"),
+      fetchJson("/api/admin/stats", "відвідувачі"),
       loadChecks(),
     ])
       .then(([b, o, h, p, s]) => {
-        setBookings(b.bookings || []);
-        setOrders(o.orders || []);
-        setHomeOrders(h.homeOrders || []);
-        setProducts(p.products || []);
-        setStats(s || null);
+        if (b) setBookings(b.bookings || []);
+        if (o) setOrders(o.orders || []);
+        if (h) setHomeOrders(h.homeOrders || []);
+        if (p) setProducts(p.products || []);
+        if (s) setStats(s);
       })
       .finally(() => setLoading(false));
-  }, [loadChecks]);
+  }, [fetchJson, loadChecks]);
 
   useEffect(() => {
     load();
@@ -330,6 +347,18 @@ export default function AdminPage() {
           🔄 Оновити
         </button>
       </div>
+
+      {errors.length > 0 && (
+        <div className="mb-6 rounded-xl border border-terracotta/60 bg-terracotta/15 px-4 py-3">
+          <p className="text-sm font-semibold text-amber-glow">
+            Не завантажилось: {errors.join(", ")}
+          </p>
+          <p className="text-xs text-muted mt-1">
+            Решта панелі працює. Найчастіша причина — база ще не оновилась після
+            деплою: у Railway перезапустіть сервіс, щоб пройшла міграція.
+          </p>
+        </div>
+      )}
 
       {/* Відвідуваність сайту — видно з будь-якої вкладки. */}
       <div className="grid grid-cols-2 gap-3 mb-6">
@@ -568,6 +597,12 @@ function Tables({
 
   return (
     <div className="space-y-6">
+      {zones.length === 0 && (
+        <p className="text-muted">
+          Столики не завантажились. Натисніть «Оновити» — якщо не допомогло,
+          подивіться повідомлення про помилку вгорі.
+        </p>
+      )}
       {zones.map((zone) => (
         <div key={zone.id}>
           <h2 className="text-sm font-semibold text-brass uppercase tracking-wide mb-2">
