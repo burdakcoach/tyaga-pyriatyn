@@ -12,7 +12,8 @@
   "scripts": {
     "push": "drizzle-kit push",
     "seed": "tsx src/seed.ts",
-    "studio": "drizzle-kit studio"
+    "studio": "drizzle-kit studio",
+    "migrate": "tsx src/migrate.ts"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

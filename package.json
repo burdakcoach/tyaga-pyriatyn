@@ -20,7 +20,8 @@
     "bot:dev": "npm run dev --workspace=bot",
     "bot:start": "npm run start --workspace=bot",
     "build": "npm run web:build",
-    "start": "npm run db:push && npm run db:seed && concurrently -n web,bot -c blue,green \"npm run web:start\" \"npm run bot:start\""
+    "start": "npm run db:migrate && npm run db:push && npm run db:seed && concurrently -n web,bot -c blue,green \"npm run web:start\" \"npm run bot:start\"",
+    "db:migrate": "npm run migrate --workspace=packages/db"
   },
   "devDependencies": {
     "concurrently": "^10.0.4"
